@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>cl_human_shapes</name>
+  <version>0.1.0</version>
+  <description>
+    Common Lisp library with shape representations for human bodies.
+  </description>
+
+  <author email="georg.bartels@cs.uni-bremen.de">Georg Bartels</author>
+
+  <maintainer email="georg.bartels@cs.uni-bremen.de">Georg Bartels</maintainer>
+
+  <license>BSD</license>
+
+  <url type="bugtracker">https://github.com/cram-code/cl_robotics_libs/issues</url>
+  <url type="repository">https://github.com/cram-code/cl_robotics_libs</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cl_3d_shapes</build_depend>
+  <build_depend>sbcl</build_depend>
+  <run_depend>cl_3d_shapes</run_depend>
+  <run_depend>sbcl</run_depend>
+</package>
