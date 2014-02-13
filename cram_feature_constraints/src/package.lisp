@@ -30,8 +30,7 @@
 (in-package :cl-user)
 
 (defpackage :cram-feature-constraints
-  (:use #:roslisp
-        #:common-lisp)
+  (:use #:common-lisp)
   (:export point line plane
            hold-left-arm-before-chest
            feature-constraint
