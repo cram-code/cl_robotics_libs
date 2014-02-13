@@ -26,7 +26,7 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cram-feature-constraints)
+(in-package :cl-feature-constraints)
 
 (defun make-point-feature (name frame-id &key (position (cl-transforms:make-identity-vector)))
   (declare (type string name frame-id)

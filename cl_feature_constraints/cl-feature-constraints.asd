@@ -27,29 +27,15 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cl-user)
+(defsystem cl-feature-constraints
+  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
+  :license "BSD"
+  :description "Common Lisp library for specifying motions using features and constraints."
 
-(defpackage :cram-feature-constraints
-  (:use #:common-lisp)
-  (:export point line plane
-           hold-left-arm-before-chest
-           feature-constraint
-           geometric-feature
-           tool-feature
-           world-feature
-           frame-id
-           feature-position feature-direction contact-direction
-           feature-function feature-type lower-boundary
-           upper-boundary name minimum-velocity maximum-velocity
-           weight
-           feature-constraint-state
-           current-weights
-           movement-id
-           make-point-feature
-           make-line-feature
-           make-plane-feature
-           make-perpendicular-constraint
-           make-pointing-at-constraint
-           make-height-constraint
-           make-distance-constraint
-           make-constraint-state))
+  :depends-on (cl-transforms)
+  :components
+  ((:module "src"
+    :components
+    ((:file "package")
+     (:file "features" :depends-on ("package"))
+     (:file "utilities" :depends-on ("package" "features"))))))

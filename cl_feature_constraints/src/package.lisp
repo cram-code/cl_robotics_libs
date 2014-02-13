@@ -27,30 +27,29 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(in-package :cram-feature-constraints)
+(in-package :cl-user)
 
-(defclass geometric-feature ()
-  ((name :reader name :initarg :name)
-   (frame-id :reader frame-id :initarg :frame-id)
-   (feature-type :reader feature-type :initarg :feature-type)
-   (feature-position :reader feature-position :initarg :feature-position
-                     :initform (cl-transforms:make-identity-vector))
-   (feature-direction :reader feature-direction :initarg :feature-direction
-                      :initform (cl-transforms:make-identity-vector))
-   (contact-direction :reader contact-direction :initarg :contact-direction
-                      :initform (cl-transforms:make-identity-vector))))
-
-(defclass feature-constraint ()
-  ((name :reader name :initarg :name)
-   (feature-function :reader feature-function :initarg :feature-function)
-   (tool-feature :reader tool-feature :initarg :tool-feature)
-   (world-feature :reader world-feature :initarg :world-feature)
-   (lower-boundary :reader lower-boundary :initarg :lower-boundary)
-   (upper-boundary :reader upper-boundary :initarg :upper-boundary)
-   (weight :reader weight :initarg :weight :initform 1.0) ;; get rid of this
-   (maximum-velocity :reader maximum-velocity :initarg :maximum-velocity) ;; possibly get rid of this or change it into sth symbolic from Moritz ;)
-   (minimum-velocity :reader minimum-velocity :initarg :minimum-velocity))) ;; get rid of this
-
-(defclass feature-constraint-state () ;; this is ugly because it does not contain the constraints. but it will do for now.
-  ((current-weights :reader current-weights :initarg :current-weights)
-   (movement-id :reader movement-id :initarg :movement-id)))
+(defpackage :cl-feature-constraints
+  (:use #:common-lisp)
+  (:export point line plane
+           hold-left-arm-before-chest
+           feature-constraint
+           geometric-feature
+           tool-feature
+           world-feature
+           frame-id
+           feature-position feature-direction contact-direction
+           feature-function feature-type lower-boundary
+           upper-boundary name minimum-velocity maximum-velocity
+           weight
+           feature-constraint-state
+           current-weights
+           movement-id
+           make-point-feature
+           make-line-feature
+           make-plane-feature
+           make-perpendicular-constraint
+           make-pointing-at-constraint
+           make-height-constraint
+           make-distance-constraint
+           make-constraint-state))

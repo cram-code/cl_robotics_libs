@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>cram_feature_constraints</name>
+  <name>cl_feature_constraints</name>
   <version>0.1.0</version>
   <description>
     Common Lisp library for specifying motions using features and constraints.

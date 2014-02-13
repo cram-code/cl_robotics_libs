@@ -27,15 +27,30 @@
 ;;; POSSIBILITY OF SUCH DAMAGE.
 ;;;
 
-(defsystem cram-feature-constraints
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "CRAM's internal representation of feature constraints which are used for constraint-based motion control."
+(in-package :cl-feature-constraints)
 
-  :depends-on (cl-transforms)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "features" :depends-on ("package"))
-     (:file "utilities" :depends-on ("package" "features"))))))
+(defclass geometric-feature ()
+  ((name :reader name :initarg :name)
+   (frame-id :reader frame-id :initarg :frame-id)
+   (feature-type :reader feature-type :initarg :feature-type)
+   (feature-position :reader feature-position :initarg :feature-position
+                     :initform (cl-transforms:make-identity-vector))
+   (feature-direction :reader feature-direction :initarg :feature-direction
+                      :initform (cl-transforms:make-identity-vector))
+   (contact-direction :reader contact-direction :initarg :contact-direction
+                      :initform (cl-transforms:make-identity-vector))))
+
+(defclass feature-constraint ()
+  ((name :reader name :initarg :name)
+   (feature-function :reader feature-function :initarg :feature-function)
+   (tool-feature :reader tool-feature :initarg :tool-feature)
+   (world-feature :reader world-feature :initarg :world-feature)
+   (lower-boundary :reader lower-boundary :initarg :lower-boundary)
+   (upper-boundary :reader upper-boundary :initarg :upper-boundary)
+   (weight :reader weight :initarg :weight :initform 1.0) ;; get rid of this
+   (maximum-velocity :reader maximum-velocity :initarg :maximum-velocity) ;; possibly get rid of this or change it into sth symbolic from Moritz ;)
+   (minimum-velocity :reader minimum-velocity :initarg :minimum-velocity))) ;; get rid of this
+
+(defclass feature-constraint-state () ;; this is ugly because it does not contain the constraints. but it will do for now.
+  ((current-weights :reader current-weights :initarg :current-weights)
+   (movement-id :reader movement-id :initarg :movement-id)))
