@@ -28,6 +28,18 @@
 
 (in-package :cl-feature-constraints)
 
+;;; CLASS DEFINITION FOR GEOMETRIC FEATURES
+;;;
+;;; Geometric features are point features with varying orientation information.
+;;; They are used to define geometric relations which in turn are the basis
+;;; of the constraint-based motion constraints.
+;;;
+;;; Currently, three types of geometric features are supported: points, lines, and
+;;; planes. All three have a 3D origin, while only lines and planes carry additional
+;;; 3D orientation information (Implementation detail: As they all share the same data
+;;; data structure, points also have orientation information which is ignored.).
+;;; Both origin and orientation are defined w.r.t a TF frame.
+
 (defclass geometric-feature ()
   ((name :initarg :name :accessor name :type string
          :documentation "Name used for identification, possibly human-readable.")
@@ -41,29 +53,38 @@
               :documentation "3d-vector representing feature orientation w.r.t. frame-id."))
   (:documentation "A geometric feature used for modelling motion with motion constraints"))
 
+;;; DEFAULT VALUES FOR GEOMETRIC FEATURES
+;;;
+;;; Some same defaults used to in convenience create functions to make sure the slots
+;;; of geometric features are not unbound.
+
+(defparameter *default-feature-name* ""
+  "Default name of geometric features.")
+
+(defparameter *default-feature-frame-id* ""
+  "Default frame-id of geometric features.")
+
+(defparameter *default-feature-type* :UNKNOWN-FEATURE-TYPE
+  "Default type of geometric features.")
+
+(defparameter *default-feature-origin* (cl-transforms:make-identity-vector)
+  "Default origin of geometric features.")
+
+(defparameter *default-feature-orientation* (cl-transforms:make-identity-vector)
+  "Default orientation of geometric features.")
+
+;;; CONVENIENCE FUNCTIONS
+
 (defun make-geometric-feature (&key (name *default-feature-name*) 
                                  (frame-id *default-feature-frame-id*)
                                  (feature-type *default-feature-type*)
                                  (origin *default-feature-origin*)
                                  (orientation *default-feature-orientation*))
+  "Creates an instance of type 'geometric-feature' filling it with the content provided in
+ the parameters. If not specified as params, slots are bound to defaults with correct type."
   (declare (type string name frame-id)
            (type symbol feature-type)
            (type cl-transforms:3d-vector origin orientation))
   (make-instance 'geometric-feature
                  :name name :frame-id frame-id :feature-type feature-type
                  :origin origin :orientation orientation))
-
-(defclass feature-constraint ()
-  ((name :reader name :initarg :name)
-   (feature-function :reader feature-function :initarg :feature-function)
-   (tool-feature :reader tool-feature :initarg :tool-feature)
-   (world-feature :reader world-feature :initarg :world-feature)
-   (lower-boundary :reader lower-boundary :initarg :lower-boundary)
-   (upper-boundary :reader upper-boundary :initarg :upper-boundary)
-   (weight :reader weight :initarg :weight :initform 1.0) ;; get rid of this
-   (maximum-velocity :reader maximum-velocity :initarg :maximum-velocity) ;; possibly get rid of this or change it into sth symbolic from Moritz ;)
-   (minimum-velocity :reader minimum-velocity :initarg :minimum-velocity))) ;; get rid of this
-
-(defclass feature-constraint-state () ;; this is ugly because it does not contain the constraints. but it will do for now.
-  ((current-weights :reader current-weights :initarg :current-weights)
-   (movement-id :reader movement-id :initarg :movement-id)))
