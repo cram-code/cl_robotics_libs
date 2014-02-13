@@ -55,8 +55,8 @@
 
 ;;; DEFAULT VALUES FOR GEOMETRIC FEATURES
 ;;;
-;;; Some same defaults used to in convenience create functions to make sure the slots
-;;; of geometric features are not unbound.
+;;; Some same defaults used to convenience create functions to make sure the slots
+;;; of geometric features are bound.
 
 (defparameter *default-feature-name* ""
   "Default name of geometric features.")
