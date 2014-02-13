@@ -29,15 +29,29 @@
 (in-package :cl-feature-constraints)
 
 (defclass geometric-feature ()
-  ((name :reader name :initarg :name)
-   (frame-id :reader frame-id :initarg :frame-id)
-   (feature-type :reader feature-type :initarg :feature-type)
-   (feature-position :reader feature-position :initarg :feature-position
-                     :initform (cl-transforms:make-identity-vector))
-   (feature-direction :reader feature-direction :initarg :feature-direction
-                      :initform (cl-transforms:make-identity-vector))
-   (contact-direction :reader contact-direction :initarg :contact-direction
-                      :initform (cl-transforms:make-identity-vector))))
+  ((name :initarg :name :accessor name :type string
+         :documentation "Name used for identification, possibly human-readable.")
+   (frame-id :initarg :frame-id :accessor frame-id :type string
+             :documentation "TF frame w.r.t. the feature is defined.")
+   (feature-type :initarg :feature-type :accessor feature-type :type symbol
+                 :documentation "Symbol denoting type of feature: POINT/LINE/PLANE")
+   (origin :initarg :origin :accessor origin :type cl-transforms:3d-vector
+             :documentation "3d-vector representing feature origin w.r.t. frame-id.")
+   (orientation :initarg :orientation :accessor orientation :type cl-transforms:3d-vector
+              :documentation "3d-vector representing feature orientation w.r.t. frame-id."))
+  (:documentation "A geometric feature used for modelling motion with motion constraints"))
+
+(defun make-geometric-feature (&key (name *default-feature-name*) 
+                                 (frame-id *default-feature-frame-id*)
+                                 (feature-type *default-feature-type*)
+                                 (origin *default-feature-origin*)
+                                 (orientation *default-feature-orientation*))
+  (declare (type string name frame-id)
+           (type symbol feature-type)
+           (type cl-transforms:3d-vector origin orientation))
+  (make-instance 'geometric-feature
+                 :name name :frame-id frame-id :feature-type feature-type
+                 :origin origin :orientation orientation))
 
 (defclass feature-constraint ()
   ((name :reader name :initarg :name)

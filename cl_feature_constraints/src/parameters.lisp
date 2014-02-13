@@ -26,17 +26,19 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cl-feature-constraints
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Common Lisp library for specifying motions using features and constraints."
+(in-package :cl-feature-constraints)
 
-  :depends-on (cl-transforms)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "parameters" :depends-on ("package"))
-     (:file "features" :depends-on ("package" "parameters"))
-    ;     (:file "utilities" :depends-on ("package" "features"))
-))))
+(defparameter *default-feature-name* ""
+  "Default name of geometric features.")
+
+(defparameter *default-feature-frame-id* ""
+  "Default frame-id of geometric features.")
+
+(defparameter *default-feature-type* :UNKNOWN-FEATURE-TYPE
+  "Default type of geometric features.")
+
+(defparameter *default-feature-origin* (cl-transforms:make-identity-vector)
+  "Default origin of geometric features.")
+
+(defparameter *default-feature-orientation* (cl-transforms:make-identity-vector)
+  "Default orientation of geometric features.")
