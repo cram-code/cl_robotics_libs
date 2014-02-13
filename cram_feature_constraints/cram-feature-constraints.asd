@@ -32,8 +32,7 @@
   :license "BSD"
   :description "CRAM's internal representation of feature constraints which are used for constraint-based motion control."
 
-  :depends-on (roslisp
-               cl-transforms)
+  :depends-on (cl-transforms)
   :components
   ((:module "src"
     :components
