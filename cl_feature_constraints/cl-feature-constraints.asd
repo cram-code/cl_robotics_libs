@@ -36,6 +36,7 @@
   ((:module "src"
     :components
     ((:file "package")
+     (:file "parameters" :depends-on ("package"))
      (:file "features" :depends-on ("package"))
      (:file "feature-relations" :depends-on ("package" "features"))
-     (:file "constraints" :depends-on ("package" "features"))))))
+     (:file "feature-constraints" :depends-on ("package" "feature-relations" "parameters"))))))

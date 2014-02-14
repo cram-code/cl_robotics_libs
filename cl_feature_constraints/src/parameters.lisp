@@ -28,17 +28,11 @@
 
 (in-package :cl-feature-constraints)
 
-(defparameter *default-feature-name* ""
-  "Default name of geometric features.")
+(defparameter *infinity* 1e20
+  "A constant with a very high value.")
 
-(defparameter *default-feature-frame-id* ""
-  "Default frame-id of geometric features.")
+(defparameter *pos-infinity* (abs *infinity*)
+  "A constant with a very high value and positive sign.")
 
-(defparameter *default-feature-type* :UNKNOWN-FEATURE-TYPE
-  "Default type of geometric features.")
-
-(defparameter *default-feature-origin* (cl-transforms:make-identity-vector)
-  "Default origin of geometric features.")
-
-(defparameter *default-feature-orientation* (cl-transforms:make-identity-vector)
-  "Default orientation of geometric features.")
+(defparameter *neg-infinity* (- *pos-infinity*)
+  "A constant with a very high value and negative sign.")
