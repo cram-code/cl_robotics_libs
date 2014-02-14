@@ -30,25 +30,18 @@
 
 (defpackage :cl-feature-constraints
   (:use #:common-lisp)
-  (:export point line plane
-           hold-left-arm-before-chest
-           feature-constraint
-           geometric-feature
-           tool-feature
-           world-feature
-           frame-id
-           feature-position feature-direction contact-direction
-           feature-function feature-type lower-boundary
-           upper-boundary name minimum-velocity maximum-velocity
-           weight
-           feature-constraint-state
-           current-weights
-           movement-id
-           make-point-feature
-           make-line-feature
-           make-plane-feature
-           make-perpendicular-constraint
-           make-pointing-at-constraint
-           make-height-constraint
-           make-distance-constraint
-           make-constraint-state))
+  (:export 
+   ;; geometric features
+   geometric-feature id frame-id feature-type origin orientation valid-feature-types
+   valid-feature-type-symbol-p valid-feature-type-p make-geometric-feature validate-args 
+   point line plane
+   ;; feature relations
+   feature-relation reference function-type tool-feature object-feature
+   valid-relation-functions valid-relation-function-symbol-p valid-relation-type-p
+   make-feature-relation above below right left behind in-front distance perpendicular
+   pointing-act
+   ;; feature constraints
+   feature-constraint relation lower-boundary upper-boundary make-feature-constraint
+   ;; feature constraint states
+   feature-constraint-state constraint-id output ctrl-output ctrl-weight 
+   make-feature-constraint-state))
