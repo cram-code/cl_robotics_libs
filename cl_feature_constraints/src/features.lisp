@@ -41,8 +41,8 @@
 ;;; Both origin and orientation are defined w.r.t a TF frame.
 
 (defclass geometric-feature ()
-  ((name :initarg :name :accessor name :type string
-         :documentation "Name used for identification, possibly human-readable.")
+  ((id :initarg :id :accessor id :type string
+       :documentation "ID used for identification, possibly human-readable.")
    (frame-id :initarg :frame-id :accessor frame-id :type string
              :documentation "TF frame w.r.t. the feature is defined.")
    (feature-type :initarg :feature-type :accessor feature-type :type symbol
@@ -58,8 +58,8 @@
 ;;; Some same defaults used to convenience create functions to make sure the slots
 ;;; of geometric features are bound.
 
-(defparameter *default-feature-name* ""
-  "Default name of geometric features.")
+(defparameter *default-feature-id* ""
+  "Default ID of geometric features.")
 
 (defparameter *default-feature-frame-id* ""
   "Default frame-id of geometric features.")
@@ -75,16 +75,16 @@
 
 ;;; CONVENIENCE FUNCTIONS
 
-(defun make-geometric-feature (&key (name *default-feature-name*) 
+(defun make-geometric-feature (&key (id *default-feature-id*) 
                                  (frame-id *default-feature-frame-id*)
                                  (feature-type *default-feature-type*)
                                  (origin *default-feature-origin*)
                                  (orientation *default-feature-orientation*))
   "Creates an instance of type 'geometric-feature' filling it with the content provided in
  the parameters. If not specified as params, slots are bound to defaults with correct type."
-  (declare (type string name frame-id)
+  (declare (type string id frame-id)
            (type symbol feature-type)
            (type cl-transforms:3d-vector origin orientation))
   (make-instance 'geometric-feature
-                 :name name :frame-id frame-id :feature-type feature-type
+                 :id id :frame-id frame-id :feature-type feature-type
                  :origin origin :orientation orientation))
