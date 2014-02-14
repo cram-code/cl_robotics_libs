@@ -76,11 +76,34 @@
 
 ;;; CONVENIENCE FUNCTIONS
 
+(defparameter *valid-relation-functions* 
+  (list :above :below :right :left :behind :in-front :distance :perpendicular :pointing-at)
+  "List of symbols denoting valid geometric relation functions understood by controller.")
+
+(defun valid-relation-functions ()
+  "Returns list of symbols denoting valid geometric relation functions understood by
+ controller."
+  *valid-relation-functions*)
+
+(defun valid-relation-function-symbol-p (relation-type)
+  "Checks whether the symbol `relation-type' denotes a valid geometric relation function.
+ Returns `relation-type' if yes, else 'nil'."
+  (declare (type symbol relation-type))
+  (find relation-type (valid-relation-functions)))
+
+(defun valid-relation-type-p (relation)
+  "Checks whether the feature relation `relation' has a valid geometric function type.
+ If yes, returns the function type symbol of `relation', else 'nil'."
+  (declare (type feature-relation relation))
+  (with-slots (function) relation
+    (valid-relation-function-symbol-p function)))
+
 (defun make-feature-relation (&key (id *default-relation-id*)
                                 (reference *default-relation-reference*)
                                 (function *default-relation-function*)
                                 (tool-feature *default-tool-feature*)
-                                (object-feature *default-object-feature*))
+                                (object-feature *default-object-feature*)
+                                (validate-args *default-validation-level*))
  "Creates an instance of type 'feature-relation' filling it with the content provided in
  the parameters. If not specified as params, slots are bound to defaults with correct type."
   (declare (type string id reference)
@@ -90,3 +113,15 @@
    'feature-relation
    :id id :reference reference :function function
    :tool-feature tool-feature :object-feature object-feature))
+
+(defmethod initialize-instance :after ((relation feature-relation) 
+                                       &key (validate-args *default-validation-level*))
+  ;; possibly checking/enforcing that feature relations have correct type
+  (when validate-args
+    (unless (valid-relation-type-p relation)
+      (with-slots (id function) relation
+        (if (eq validate-args :warn)
+            (warn "Feature relation '~a' initialized with invalid function-type: ~a"
+                  id function)
+            (error "Feature relation '~a' initialized with invalid function-type: ~a"
+                  id function))))))

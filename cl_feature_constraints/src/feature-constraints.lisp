@@ -58,7 +58,7 @@
 (defparameter *default-constraint-id* ""
   "Default ID of feature constraints.")
 
-(defparameter *default-constraint-relation* (make-feature-relation)
+(defparameter *default-constraint-relation* (make-feature-relation :validate-args nil)
   "Default relation of feature constraints.")
 
 (defparameter *default-constraint-lower* *neg-infinity*

@@ -38,5 +38,5 @@
     ((:file "package")
      (:file "parameters" :depends-on ("package"))
      (:file "features" :depends-on ("package" "parameters"))
-     (:file "feature-relations" :depends-on ("package" "features"))
+     (:file "feature-relations" :depends-on ("package" "features" "parameters"))
      (:file "feature-constraints" :depends-on ("package" "feature-relations" "parameters"))))))
