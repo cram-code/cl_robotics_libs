@@ -68,10 +68,10 @@
 (defparameter *default-relation-function* :UNKNOWN-RELATION-FUNCTION
   "Default function symbol feature relations.")
 
-(defparameter *default-tool-feature* (make-geometric-feature)
+(defparameter *default-tool-feature* (make-geometric-feature :validate-args nil)
   "Default tool feature of feature relations.")
 
-(defparameter *default-object-feature* (make-geometric-feature)
+(defparameter *default-object-feature* (make-geometric-feature :validate-args nil)
   "Default object feature of feature relations.")
 
 ;;; CONVENIENCE FUNCTIONS
