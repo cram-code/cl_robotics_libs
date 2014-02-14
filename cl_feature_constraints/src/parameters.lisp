@@ -36,3 +36,6 @@
 
 (defparameter *neg-infinity* (- *pos-infinity*)
   "A constant with a very high value and negative sign.")
+
+(defparameter *default-validation-level* :warn
+  "A symbol denoting the default validation mode used.")

@@ -73,18 +73,55 @@
 (defparameter *default-feature-orientation* (cl-transforms:make-identity-vector)
   "Default orientation of geometric features.")
 
+(defparameter *vaild-feature-types* (list :point :line :plane)
+  "List of symbols denoting valid feature types.")
+
 ;;; CONVENIENCE FUNCTIONS
+
+(defun valid-feature-types ()
+  "Returns a list of symbols denoting valid types of geometric features."
+  *vaild-feature-types*)
+
+(defun valid-feature-type-symbol-p (feature-type)
+  "Checks whether the symbol `feature-type' denotes a valid geometric feature. Returns
+ `feature-type' if yes, else 'nil'."
+  (declare (type symbol feature-type))
+  (find feature-type (valid-feature-types)))
+
+(defun valid-feature-type-p (feature)
+  "Checks whether the symbol `feature' has a valid geometric feature type. Returns the 
+ feature type symbol of `feature', else 'nil'."
+  (declare (type geometric-feature feature))
+  (valid-feature-type-symbol-p (feature-type feature)))
 
 (defun make-geometric-feature (&key (id *default-feature-id*) 
                                  (frame-id *default-feature-frame-id*)
                                  (feature-type *default-feature-type*)
                                  (origin *default-feature-origin*)
-                                 (orientation *default-feature-orientation*))
+                                 (orientation *default-feature-orientation*)
+                                 (validate-args *default-validation-level*))
   "Creates an instance of type 'geometric-feature' filling it with the content provided in
- the parameters. If not specified as params, slots are bound to defaults with correct type."
+ the parameters. If not specified as params, slots are bound to defaults with correct type.
+ 
+ `validate-args' is flag enabling a check for a correct feature type: nil will deactivate
+ checking, :warn will cause a warning to be thrown if an incorrect type was given, and 
+ everything else will cause an error in case of invalid types."
   (declare (type string id frame-id)
            (type symbol feature-type)
            (type cl-transforms:3d-vector origin orientation))
   (make-instance 'geometric-feature
                  :id id :frame-id frame-id :feature-type feature-type
-                 :origin origin :orientation orientation))
+                 :origin origin :orientation orientation
+                 :validate-args validate-args))
+
+(defmethod initialize-instance :after ((feature geometric-feature) 
+                                       &key (validate-args *default-validation-level*))
+  ;; possibly checking/enforcing that geometric features have correct type
+  (when validate-args
+    (unless (valid-feature-type-p feature)
+      (with-slots (id feature-type) feature
+        (if (eq validate-args :warn)
+            (warn "Geometric feature '~a' initialized with invalid feature-type: ~a"
+                  id feature-type)
+            (error "Geometric feature '~a' initialized with invalid feature-type: ~a"
+                  id feature-type))))))
