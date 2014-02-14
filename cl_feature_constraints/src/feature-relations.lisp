@@ -45,8 +45,8 @@
        :documentation "ID used for identification, possibly human-readable.")
    (reference :initarg :reference :accessor reference :type string
               :documentation "TF frame w.r.t. the function is evaluated.")
-   (function :initarg :function :accessor feature-function :type symbol
-             :documentation "1D function relating the two features.")
+   (function-type :initarg :function-type :accessor function-type :type symbol
+                  :documentation "Symbol denoting 1D function relating two features.")
    (tool-feature :initarg :tool-feature :accessor tool-feature :type geometric-feature
                  :documentation "Geometric feature controlled by robot.")
    (object-feature :initarg :object-feature :accessor object-feature 
@@ -65,8 +65,8 @@
 (defparameter *default-relation-reference* ""
   "Default reference of feature relations.")
 
-(defparameter *default-relation-function* :UNKNOWN-RELATION-FUNCTION
-  "Default function symbol feature relations.")
+(defparameter *default-relation-function-type* :UNKNOWN-RELATION-FUNCTION
+  "Default function symbol of feature relations.")
 
 (defparameter *default-tool-feature* (make-geometric-feature :validate-args nil)
   "Default tool feature of feature relations.")
@@ -95,33 +95,34 @@
   "Checks whether the feature relation `relation' has a valid geometric function type.
  If yes, returns the function type symbol of `relation', else 'nil'."
   (declare (type feature-relation relation))
-  (with-slots (function) relation
-    (valid-relation-function-symbol-p function)))
+  (with-slots (function-type) relation
+    (valid-relation-function-symbol-p function-type)))
 
 (defun make-feature-relation (&key (id *default-relation-id*)
                                 (reference *default-relation-reference*)
-                                (function *default-relation-function*)
+                                (function-type *default-relation-function-type*)
                                 (tool-feature *default-tool-feature*)
                                 (object-feature *default-object-feature*)
                                 (validate-args *default-validation-level*))
  "Creates an instance of type 'feature-relation' filling it with the content provided in
  the parameters. If not specified as params, slots are bound to defaults with correct type."
   (declare (type string id reference)
-           (type symbol function)
+           (type symbol function-type)
            (type geometric-feature tool-feature object-feature))
   (make-instance 
    'feature-relation
-   :id id :reference reference :function function
-   :tool-feature tool-feature :object-feature object-feature))
+   :id id :reference reference :function-type function-type
+   :tool-feature tool-feature :object-feature object-feature
+   :validate-args validate-args))
 
 (defmethod initialize-instance :after ((relation feature-relation) 
                                        &key (validate-args *default-validation-level*))
   ;; possibly checking/enforcing that feature relations have correct type
   (when validate-args
     (unless (valid-relation-type-p relation)
-      (with-slots (id function) relation
+      (with-slots (id function-type) relation
         (if (eq validate-args :warn)
             (warn "Feature relation '~a' initialized with invalid function-type: ~a"
-                  id function)
+                  id function-type)
             (error "Feature relation '~a' initialized with invalid function-type: ~a"
-                  id function))))))
+                  id function-type))))))
