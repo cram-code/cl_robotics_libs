@@ -89,10 +89,11 @@
   (find feature-type (valid-feature-types)))
 
 (defun valid-feature-type-p (feature)
-  "Checks whether the symbol `feature' has a valid geometric feature type. Returns the 
- feature type symbol of `feature', else 'nil'."
+  "Checks whether the geometric feature `feature' has a valid geometric feature type.
+ Returns the feature type symbol of `feature', else 'nil'."
   (declare (type geometric-feature feature))
-  (valid-feature-type-symbol-p (feature-type feature)))
+  (with-slots (feature-type) feature
+    (valid-feature-type-symbol-p feature-type)))
 
 (defun make-geometric-feature (&key (id *default-feature-id*) 
                                  (frame-id *default-feature-frame-id*)
