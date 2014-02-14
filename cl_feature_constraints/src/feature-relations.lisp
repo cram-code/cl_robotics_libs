@@ -35,8 +35,8 @@
 ;;; of geometric features. Motion goals are subsequently defined as desired outputs
 ;;; over feature relations.
 ;;;
-;;; Some feature functions in fact require a third argument: The point of view (or
-;;; reference) from which they are evaluated. For example: Imagine a cup and a plate
+;;; Some feature functions require a third argument: The point of view (or reference)
+;;; from which they are evaluated. For example: Imagine a cup and a plate
 ;;; standing on a table. Whether the cup is left or right of the plate depends on the
 ;;; physical point of view of the observer. This reference is specified as a TF frame.
 
@@ -85,7 +85,7 @@
  the parameters. If not specified as params, slots are bound to defaults with correct type."
   (declare (type string id reference)
            (type symbol function)
-           (geometric-feature tool-feature object-feature))
+           (type geometric-feature tool-feature object-feature))
   (make-instance 
    'feature-relation
    :id id :reference reference :function function
