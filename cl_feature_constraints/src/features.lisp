@@ -73,7 +73,7 @@
 (defparameter *default-feature-orientation* (cl-transforms:make-identity-vector)
   "Default orientation of geometric features.")
 
-(defparameter *vaild-feature-types* (list :point :line :plane)
+(defparameter *vaild-feature-types* (list 'point 'line 'plane)
   "List of symbols denoting valid feature types.")
 
 ;;; CONVENIENCE FUNCTIONS
