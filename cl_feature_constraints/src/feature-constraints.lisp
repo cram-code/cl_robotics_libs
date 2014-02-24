@@ -123,25 +123,28 @@
 (defparameter *default-constraint-ctrl-weight* 0
   "Default control weight of feature constraint states.")
 
-(defun make-feature-constraint-state (&key (id *default-constraint-id*)
+(defun make-feature-constraint-state (&key (constraint-id *default-constraint-id*)
                                         (output *default-constraint-output*)
                                         (ctrl-output *default-constraint-ctrl-output*)
                                         (ctrl-weight *default-constraint-ctrl-weight*))
  "Creates an instance of type 'feature-constraint' filling it with the content provided in
  the parameters. If not specified as params, slots are bound to defaults with correct type."
-  (declare (type string id)
+  (declare (type string constraint-id)
            (type number output ctrl-output ctrl-weight))
   (make-instance 
    'feature-constraint-state
-   :id id :output output :ctrl-output ctrl-output :ctrl-weight ctrl-weight))
+   :constraint-id constraint-id :output output :ctrl-output ctrl-output
+   :ctrl-weight ctrl-weight))
 
-(defun copy-feature-constraint-state (state &key id output ctrl-output ctrl-weight)
+(defun copy-feature-constraint-state (state &key constraint-id output
+                                              ctrl-output ctrl-weight)
   "Creates and returns a deep copy of `state'. If any of the key-arguments are given, they
  are used to initialize the respective slot of the copied feature-constraint-state."
-  (with-slots ((old-id id) (old-output output) (old-ctrl-output ctrl-output)
-               (old-ctrl-weight ctrl-weight)) state
+  (declare (type feature-constraint-state state))
+  (with-slots ((old-constraint-id constraint-id) (old-output output)
+               (old-ctrl-output ctrl-output) (old-ctrl-weight ctrl-weight)) state
     (make-feature-constraint-state
-     :id (or id old-id)
+     :constraint-id (or constraint-id old-constraint-id)
      :output (or output old-output)
      :ctrl-output (or ctrl-output old-ctrl-output)
      :ctrl-weight (or ctrl-weight old-ctrl-weight))))
