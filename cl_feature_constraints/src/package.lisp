@@ -39,7 +39,7 @@
    feature-relation reference function-type tool-feature object-feature
    valid-relation-functions valid-relation-function-symbol-p valid-relation-type-p
    make-feature-relation above below right left behind in-front distance perpendicular
-   pointing-at
+   pointing-at copy-feature-relation
    ;; feature constraints
    feature-constraint relation lower-boundary upper-boundary make-feature-constraint
    ;; feature constraint states

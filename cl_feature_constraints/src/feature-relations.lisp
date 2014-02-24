@@ -126,3 +126,15 @@
                   id function-type)
             (error "Feature relation '~a' initialized with invalid function-type: ~a"
                   id function-type))))))
+
+(defun copy-feature-relation (relation &key id reference function-type 
+                                         tool-feature object-feature)
+  (with-slots ((old-id id) (old-reference reference) (old-function-type function-type)
+               (old-tool-feature tool-feature) (old-object-feature object-feature))
+      relation
+    (make-feature-relation 
+     :id (or id old-id)
+     :reference (or reference old-reference)
+     :function-type (or function-type old-function-type)
+     :tool-feature (or tool-feature old-tool-feature)
+     :object-feature (or object-feature old-object-feature))))
