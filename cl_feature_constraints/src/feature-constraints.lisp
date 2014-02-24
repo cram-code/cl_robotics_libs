@@ -92,7 +92,7 @@
                   :documentation "Identifier of original feature constraint.")
    (output :initarg :output :accessor output :type number
            :documentation "Current output of feature relation.")
-   (ctrl-output :initarg :ctrl-output :accessor ctrl-point :type number
+   (ctrl-output :initarg :ctrl-output :accessor ctrl-output :type number
                :documentation "Current controller set-point of feature constraint.")
    (ctrl-weight :initarg :ctrl-weight :accessor ctrl-weight :type number
                 :documentation "Current weight of feature constraint by controller."))
