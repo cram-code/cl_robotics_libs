@@ -26,24 +26,47 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :cl-feature-constraints)
 
-(defpackage :cl-feature-constraints
-  (:use #:common-lisp)
-  (:export 
-   ;; geometric features
-   geometric-feature id frame-id feature-type origin orientation valid-feature-types
-   valid-feature-type-symbol-p valid-feature-type-p make-geometric-feature validate-args 
-   point line plane
-   ;; feature relations
-   feature-relation reference function-type tool-feature object-feature
-   valid-relation-functions valid-relation-function-symbol-p valid-relation-type-p
-   make-feature-relation above below right left behind in-front distance perpendicular
-   pointing-at
-   ;; feature constraints
-   feature-constraint relation lower-boundary upper-boundary make-feature-constraint
-   ;; feature constraint states
-   feature-constraint-state constraint-id output ctrl-output ctrl-weight 
-   make-feature-constraint-state
-   ;; equality
-   equal-p))
+(defgeneric equal-p (a b))
+
+(defmethod equal-p ((a cl-transforms:3d-vector) (b cl-transforms:3d-vector))
+  (or (eq a b)
+      (and
+       (= (cl-transforms:x a) (cl-transforms:x b))
+       (= (cl-transforms:y a) (cl-transforms:y b))
+       (= (cl-transforms:z a) (cl-transforms:z b)))))
+
+(defmethod equal-p ((a geometric-feature) (b geometric-feature))
+  (or (eq a b)
+      (and
+       (string= (id a) (id b))
+       (string= (frame-id a) (frame-id b))
+       (eql (feature-type a) (feature-type b))
+       (equal-p (origin a) (origin b))
+       (equal-p (orientation a) (orientation b)))))
+      
+(defmethod equal-p ((a feature-relation) (b feature-relation))
+  (or (eq a b)
+      (and
+       (string= (id a) (id b))
+       (string= (reference a) (reference b))
+       (eql (function-type a) (function-type b))
+       (equal-p (tool-feature a) (tool-feature b))
+       (equal-p (object-feature a) (object-feature b)))))
+
+(defmethod equal-p ((a feature-constraint) (b feature-constraint))
+  (or (eq a b)
+      (and
+       (string= (id a) (id b))
+       (= (lower-boundary a) (lower-boundary b))
+       (= (upper-boundary a) (upper-boundary b))
+       (equal-p (relation a) (relation b)))))
+
+(defmethod equal-p ((a feature-constraint-state) (b feature-constraint-state))
+  (or (eq a b)
+      (and
+       (string= (constraint-id a) (constraint-id b))
+       (= (output a) (output b))
+       (= (ctrl-output a) (ctrl-output b))
+       (= (ctrl-weight a) (ctrl-weight b)))))
