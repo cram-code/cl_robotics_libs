@@ -21,4 +21,6 @@
 
   <run_depend>sbcl</run_depend>
   <run_depend>cl_transforms</run_depend>
+
+  <test_depend>lisp_unit</test_depend>
 </package>
