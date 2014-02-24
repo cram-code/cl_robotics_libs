@@ -34,7 +34,7 @@
    ;; geometric features
    geometric-feature id frame-id feature-type origin orientation valid-feature-types
    valid-feature-type-symbol-p valid-feature-type-p make-geometric-feature validate-args 
-   point line plane
+   point line plane copy-geometric-feature
    ;; feature relations
    feature-relation reference function-type tool-feature object-feature
    valid-relation-functions valid-relation-function-symbol-p valid-relation-type-p

@@ -126,3 +126,15 @@
                   id feature-type)
             (error "Geometric feature '~a' initialized with invalid feature-type: ~a"
                   id feature-type))))))
+
+(defun copy-geometric-feature (feature &key id frame-id feature-type origin orientation)
+  "Creates and returns a deep copy of `feature'. If any of the key-arguments are given,
+ they are used to initialize the respective slot of the copied geometric-feature."
+  (with-slots ((old-id id) (old-frame-id frame-id) (old-feature-type feature-type)
+               (old-origin origin) (old-orientation orientation)) feature
+    (make-geometric-feature
+     :id (or id old-id)
+     :frame-id (or frame-id old-frame-id)
+     :feature-type (or feature-type old-feature-type)
+     :origin (cl-transforms:copy-3d-vector (or origin old-origin))
+     :orientation (cl-transforms:copy-3d-vector (or orientation old-orientation)))))
