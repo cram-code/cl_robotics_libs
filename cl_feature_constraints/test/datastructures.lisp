@@ -90,3 +90,38 @@
     (assert-false (equal-p relation other-relation3))
     (assert-false (equal-p relation other-relation4))
     (assert-false (equal-p relation other-relation5))))
+
+(define-test feature-constraint-equal-p ()
+  (let* ((feature 
+           (make-geometric-feature
+            :id "spatula front edge"
+            :frame-id "/spatula"
+            :feature-type 'line
+            :origin (cl-transforms:make-3d-vector 0.1 0.2 0.3)
+            :orientation (cl-transforms:make-3d-vector -0.1 -0.2 -0.3)))
+         (relation
+           (make-feature-relation
+            :id "some relation"
+            :reference "here"
+            :function-type 'behind
+            :tool-feature (copy-geometric-feature feature)
+            :object-feature (copy-geometric-feature feature :frame-id "somewhere")))
+         (constraint
+           (make-feature-constraint
+            :id "some constraint"
+            :relation (copy-feature-relation relation)
+            :lower-boundary 0.0
+            :upper-boundary 10.0))
+         (constraint2 (copy-feature-constraint constraint))
+         (other-constraint (copy-feature-constraint constraint :id "hehe"))
+         (other-constraint2 
+           (copy-feature-constraint constraint
+                                    :relation (copy-feature-relation relation :id "unknown")))
+         (other-constraint3 (copy-feature-constraint constraint :lower-boundary -2))
+         (other-constraint4 (copy-feature-constraint constraint :upper-boundary 11)))
+    (assert-true (equal-p constraint constraint))
+    (assert-true (equal-p constraint constraint2))
+    (assert-false (equal-p constraint other-constraint))
+    (assert-false (equal-p constraint other-constraint2))
+    (assert-false (equal-p constraint other-constraint3))
+    (assert-false (equal-p constraint other-constraint4))))
