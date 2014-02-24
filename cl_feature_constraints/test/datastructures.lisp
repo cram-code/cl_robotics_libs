@@ -51,3 +51,40 @@
     (assert-false (equal-p feature other-feature3))
     (assert-false (equal-p feature other-feature4))
     (assert-false (equal-p feature other-feature5))))
+
+(define-test feature-relation-equal-p ()
+  (let* ((feature 
+           (make-geometric-feature
+            :id "spatula front edge"
+            :frame-id "/spatula"
+            :feature-type 'line
+            :origin (cl-transforms:make-3d-vector 0.1 0.2 0.3)
+            :orientation (cl-transforms:make-3d-vector -0.1 -0.2 -0.3)))
+         (feature2
+           (make-geometric-feature
+            :id "pancake center"
+            :frame-id "/kinect"
+            :feature-type 'point
+            :origin (cl-transforms:make-3d-vector 2.0 0.2 0.03)
+            :orientation (cl-transforms:make-identity-vector)))
+         (relation (make-feature-relation
+                    :id "spatula front over pancake center"
+                    :reference "torso_lift_link"
+                    :function-type 'above
+                    :tool-feature (copy-geometric-feature feature)
+                    :object-feature (copy-geometric-feature feature2)))
+         (relation2 (copy-feature-relation relation))
+         (other-relation (copy-feature-relation relation :id "huhu"))
+         (other-relation2 (copy-feature-relation relation :reference "there"))
+         (other-relation3 (copy-feature-relation relation :function-type 'below))
+         (other-relation4 (copy-feature-relation relation 
+                                                 :tool-feature (copy-geometric-feature feature2)))
+         (other-relation5 (copy-feature-relation relation 
+                                                 :object-feature (copy-geometric-feature feature))))
+    (assert-true (equal-p relation relation))
+    (assert-true (equal-p relation relation2))
+    (assert-false (equal-p relation other-relation))
+    (assert-false (equal-p relation other-relation2))
+    (assert-false (equal-p relation other-relation3))
+    (assert-false (equal-p relation other-relation4))
+    (assert-false (equal-p relation other-relation5))))
