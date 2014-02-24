@@ -80,6 +80,17 @@
    'feature-constraint
    :id id :relation relation :lower-boundary lower-boundary :upper-boundary upper-boundary))
 
+(defun copy-feature-constraint (constraint &key id relation lower-boundary upper-boundary)
+  "Creates and returns a deep copy of `constraint'. If any of the key-arguments are given,
+ they are used to initialize the respective slot of the copied feature-constraint."
+  (with-slots ((old-id id) (old-relation relation) (old-lower-boundary lower-boundary)
+               (old-upper-boundary upper-boundary)) constraint
+    (make-feature-constraint
+     :id (or id old-id)
+     :relation (or relation old-relation)
+     :lower-boundary (or lower-boundary old-lower-boundary)
+     :upper-boundary (or upper-boundary old-upper-boundary))))
+     
 ;;; CLASS DEFINITION FOR FEATURE CONSTRAINT STATES
 ;;;
 ;;; The controller reports the state of each constraint back for further analysis or
@@ -123,3 +134,14 @@
   (make-instance 
    'feature-constraint-state
    :id id :output output :ctrl-output ctrl-output :ctrl-weight ctrl-weight))
+
+(defun copy-feature-constraint-state (state &key id output ctrl-output ctrl-weight)
+  "Creates and returns a deep copy of `state'. If any of the key-arguments are given, they
+ are used to initialize the respective slot of the copied feature-constraint-state."
+  (with-slots ((old-id id) (old-output output) (old-ctrl-output ctrl-output)
+               (old-ctrl-weight ctrl-weight)) state
+    (make-feature-constraint-state
+     :id (or id old-id)
+     :output (or output old-output)
+     :ctrl-output (or ctrl-output old-ctrl-output)
+     :ctrl-weight (or ctrl-weight old-ctrl-weight))))

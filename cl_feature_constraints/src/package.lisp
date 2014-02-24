@@ -42,8 +42,9 @@
    pointing-at copy-feature-relation
    ;; feature constraints
    feature-constraint relation lower-boundary upper-boundary make-feature-constraint
+   copy-feature-constraint
    ;; feature constraint states
    feature-constraint-state constraint-id output ctrl-output ctrl-weight 
-   make-feature-constraint-state
+   make-feature-constraint-state copy-feature-constraint-state
    ;; equality
    equal-p))
