@@ -125,3 +125,21 @@
     (assert-false (equal-p constraint other-constraint2))
     (assert-false (equal-p constraint other-constraint3))
     (assert-false (equal-p constraint other-constraint4))))
+
+(define-test feature-constraint-state-equal-p ()
+  (let* ((state (make-feature-constraint-state
+                 :constraint-id "current state"
+                 :output 1.1
+                 :ctrl-weight 1.2
+                 :ctrl-output 1.3))
+         (state2 (copy-feature-constraint-state state))
+         (other-state (copy-feature-constraint-state state :constraint-id "lala"))
+         (other-state2 (copy-feature-constraint-state state :output 2))
+         (other-state3 (copy-feature-constraint-state state :ctrl-weight 3))
+         (other-state4 (copy-feature-constraint-state state :ctrl-output 4)))
+    (assert-true (equal-p state state))
+    (assert-true (equal-p state state2))
+    (assert-false (equal-p state other-state))
+    (assert-false (equal-p state other-state2))
+    (assert-false (equal-p state other-state3))
+    (assert-false (equal-p state other-state4))))
