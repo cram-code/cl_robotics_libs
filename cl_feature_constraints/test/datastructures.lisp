@@ -77,10 +77,12 @@
          (other-relation (copy-feature-relation relation :id "huhu"))
          (other-relation2 (copy-feature-relation relation :reference "there"))
          (other-relation3 (copy-feature-relation relation :function-type 'below))
-         (other-relation4 (copy-feature-relation relation 
-                                                 :tool-feature (copy-geometric-feature feature2)))
-         (other-relation5 (copy-feature-relation relation 
-                                                 :object-feature (copy-geometric-feature feature))))
+         (other-relation4 
+           (copy-feature-relation relation 
+                                  :tool-feature (copy-geometric-feature feature2)))
+         (other-relation5 
+           (copy-feature-relation relation 
+                                  :object-feature (copy-geometric-feature feature))))
     (assert-true (equal-p relation relation))
     (assert-true (equal-p relation relation2))
     (assert-false (equal-p relation other-relation))

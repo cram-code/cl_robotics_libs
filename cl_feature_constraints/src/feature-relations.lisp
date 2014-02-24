@@ -129,6 +129,8 @@
 
 (defun copy-feature-relation (relation &key id reference function-type 
                                          tool-feature object-feature)
+  "Creates and returns a deep copy of `relation'. If any of the key-arguments are given,
+ they are used to initialize the respective slot of the copied feature-relation."
   (with-slots ((old-id id) (old-reference reference) (old-function-type function-type)
                (old-tool-feature tool-feature) (old-object-feature object-feature))
       relation
