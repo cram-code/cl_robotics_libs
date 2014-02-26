@@ -138,3 +138,10 @@
      :feature-type (or feature-type old-feature-type)
      :origin (cl-transforms:copy-3d-vector (or origin old-origin))
      :orientation (cl-transforms:copy-3d-vector (or orientation old-orientation)))))
+
+(defmethod print-object ((object geometric-feature) stream)
+  "Clumsy printing of an fccl geometric feature."
+  (print-unreadable-object (object stream :type t)
+    (with-slots (id frame-id feature-type origin orientation) object
+        (format stream "~%id: ~s ~%frame-id: ~s ~%type: ~a ~%origin: ~a ~%orientation: ~a"
+                id frame-id feature-type origin orientation))))

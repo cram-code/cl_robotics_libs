@@ -140,3 +140,10 @@
      :function-type (or function-type old-function-type)
      :tool-feature (or tool-feature old-tool-feature)
      :object-feature (or object-feature old-object-feature))))
+
+(defmethod print-object ((object feature-relation) stream)
+  "Clumsy printing of an fccl feature relation."
+  (print-unreadable-object (object stream :type t)
+    (with-slots (id reference function-type tool-feature object-feature) object
+        (format stream "~%id: ~s ~%reference: ~s ~%type: ~a ~%tool: ~a ~%object: ~a"
+                id reference function-type tool-feature object-feature))))

@@ -90,6 +90,13 @@
      :relation (or relation old-relation)
      :lower-boundary (or lower-boundary old-lower-boundary)
      :upper-boundary (or upper-boundary old-upper-boundary))))
+
+(defmethod print-object ((object feature-constraint) stream)
+  "Clumsy printing of an fccl feature constraint."
+  (print-unreadable-object (object stream :type t)
+    (with-slots (id relation lower-boundary upper-boundary) object
+      (format stream "~%id: ~s ~%relation: ~a ~%lower-boundary: ~d ~% upper-boundary: ~d ~%"
+              id relation lower-boundary upper-boundary))))
      
 ;;; CLASS DEFINITION FOR FEATURE CONSTRAINT STATES
 ;;;

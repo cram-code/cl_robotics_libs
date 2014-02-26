@@ -61,3 +61,10 @@
      :constraints (if constraints-supplied-p
                       constraints 
                       old-constraints))))
+
+(defmethod print-object ((object motion-phase) stream)
+  "Clumsy printing of an fccl motion-phase."
+  (print-unreadable-object (object stream :type t)
+    (with-slots (id constraints) object
+        (format stream "~%id: ~s ~%constraints: ~%~a"
+                id constraints))))

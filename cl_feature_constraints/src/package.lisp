@@ -48,5 +48,5 @@
    make-feature-constraint-state copy-feature-constraint-state
    ;; motion phases
    motion-phase id constraints make-motion-phase copy-motion-phase
-   ;; equality
-   equal-p))
+   ;; misc
+   equal-p print-object))
