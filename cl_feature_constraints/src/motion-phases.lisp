@@ -26,22 +26,38 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cl-feature-constraints
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Common Lisp library for specifying motions using features and constraints."
+(in-package :cl-feature-constraints)
 
-  :depends-on (cl-transforms)
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "parameters" :depends-on ("package"))
-     (:file "features" :depends-on ("package" "parameters"))
-     (:file "feature-relations" :depends-on ("package" "features" "parameters"))
-     (:file "feature-constraints" :depends-on ("package" "feature-relations" "parameters"))
-     (:file "motion-phases" :depends-on ("package" "feature-constraints"))
-     (:file "equality" 
-      :depends-on ("package" "features" "feature-relations" "feature-constraints"
-                             "motion-phases"))
-))))
+(defclass motion-phase ()
+  ((id :initarg :id :accessor id :type string
+       :documentation "ID used for identification, possibly human-readable.")
+   (constraints :initarg :constraints :accessor constraints :type list
+                :documentation "List of feature constraints shaping this motion phase."))
+  (:documentation "Motion phase description unsing feature constraints."))
+
+(defparameter *default-motion-id* ""
+  "Default ID of motion phases.")
+
+(defparameter *default-constraint-list* nil
+  "Default constraints of motion phases.")
+
+(defun make-motion-phase (&key (id *default-motion-id*) 
+                            (constraints *default-constraint-list*))
+  "Creates and returns an instance of type 'motion-phase' filled with the content provide
+ by the user of default values which comply with the required types."
+  (declare (type string id)
+           (type list constraints))
+  (make-instance
+   'motion-phase
+   :id id :constraints constraints))
+
+(defun copy-motion-phase (motion &key id (constraints nil constraints-supplied-p))
+  "Creates and returns an instance of type 'motion-phase' filled the content of `motion',
+ possibly replaced by data given as key-parameter."
+  (declare (type motion-phase motion))
+  (with-slots ((old-id id) (old-constraints constraints)) motion
+    (make-motion-phase
+     :id (or id old-id)
+     :constraints (if constraints-supplied-p
+                      constraints 
+                      old-constraints))))

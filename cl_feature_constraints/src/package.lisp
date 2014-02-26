@@ -46,5 +46,7 @@
    ;; feature constraint states
    feature-constraint-state constraint-id output ctrl-output ctrl-weight 
    make-feature-constraint-state copy-feature-constraint-state
+   ;; motion phases
+   motion-phase id constraints make-motion-phase copy-motion-phase
    ;; equality
    equal-p))

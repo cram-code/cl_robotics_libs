@@ -63,6 +63,13 @@
        (= (upper-boundary a) (upper-boundary b))
        (equal-p (relation a) (relation b)))))
 
+(defmethod equal-p ((a motion-phase) (b motion-phase))
+  (or (eq a b)
+      (and
+       (string= (id a) (id b))
+       (eql (length (constraints a)) (length (constraints b)))
+       (every #'equal-p (constraints a) (constraints b)))))
+
 (defmethod equal-p ((a feature-constraint-state) (b feature-constraint-state))
   (or (eq a b)
       (and

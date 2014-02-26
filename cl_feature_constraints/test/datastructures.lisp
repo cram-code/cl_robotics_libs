@@ -143,3 +143,49 @@
     (assert-false (equal-p state other-state2))
     (assert-false (equal-p state other-state3))
     (assert-false (equal-p state other-state4))))
+
+(define-test motion-phase-equal-p ()
+  (let* ((feature 
+           (make-geometric-feature
+            :id "spatula front edge"
+            :frame-id "/spatula"
+            :feature-type 'line
+            :origin (cl-transforms:make-3d-vector 0.1 0.2 0.3)
+            :orientation (cl-transforms:make-3d-vector -0.1 -0.2 -0.3)))
+         (relation
+           (make-feature-relation
+            :id "some relation"
+            :reference "here"
+            :function-type 'behind
+            :tool-feature (copy-geometric-feature feature)
+            :object-feature (copy-geometric-feature feature :frame-id "somewhere")))
+         (constraint
+           (make-feature-constraint
+            :id "some constraint"
+            :relation (copy-feature-relation relation)
+            :lower-boundary 0.0
+            :upper-boundary 10.0))
+         (motion-phase
+           (make-motion-phase :id "some phase" :constraints (list constraint)))
+         (motion-phase2 
+           (copy-motion-phase motion-phase))
+         (other-phase (copy-motion-phase motion-phase :id "huhu"))
+         (other-phase2 (copy-motion-phase motion-phase :constraints nil))
+         (other-phase3 
+           (copy-motion-phase 
+            motion-phase
+            :constraints (list
+                          (copy-feature-constraint constraint)
+                          (copy-feature-constraint constraint))))
+         (other-phase4 
+           (copy-motion-phase 
+            motion-phase
+            :constraints (list
+                          (copy-feature-constraint constraint :id "lala")
+                          (copy-feature-constraint constraint)))))
+    (assert-true (equal-p motion-phase motion-phase))
+    (assert-true (equal-p motion-phase motion-phase2))
+    (assert-false (equal-p motion-phase other-phase))
+    (assert-false (equal-p motion-phase other-phase2))
+    (assert-false (equal-p motion-phase other-phase3))
+    (assert-false (equal-p motion-phase other-phase4))))
