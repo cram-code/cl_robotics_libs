@@ -45,7 +45,7 @@
    copy-feature-constraint
    ;; feature constraint states
    feature-constraint-state constraint-id output ctrl-output ctrl-weight 
-   make-feature-constraint-state copy-feature-constraint-state
+   make-feature-constraint-state copy-feature-constraint-state feature-constraint-fulfilled-p
    ;; motion phases
    motion-phase id constraints make-motion-phase copy-motion-phase
    ;; misc

@@ -155,3 +155,7 @@
      :output (or output old-output)
      :ctrl-output (or ctrl-output old-ctrl-output)
      :ctrl-weight (or ctrl-weight old-ctrl-weight))))
+
+(defun feature-constraint-fulfilled-p (constraint-state)
+  (declare (type feature-constraint-state constraint-state))
+  (< (ctrl-weight constraint-state) 1.0))
