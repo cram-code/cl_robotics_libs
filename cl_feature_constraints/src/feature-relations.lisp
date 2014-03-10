@@ -77,7 +77,7 @@
 ;;; CONVENIENCE FUNCTIONS
 
 (defparameter *valid-relation-functions* 
-  (list 'above 'below 'right 'left 'behind 'in-front 'distance 'perpendicular 'pointing)
+  (list 'above 'below 'right 'left 'behind 'infront 'distance 'perpendicular 'pointing)
   "List of symbols denoting valid geometric relation functions understood by controller.")
 
 (defun valid-relation-functions ()
