@@ -26,14 +26,17 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cl-robot-models
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Common Lisp library for kinematic and dynamic robot representations."
-  :depends-on ()
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "joint-state" :depends-on ("package"))
-     (:file "robot-state" :depends-on ("package"))))))
+(in-package :robot-models)
+
+(defclass joint-state ()
+  ((joint-name :initarg :joint-name :accessor joint-name
+               :documentation "ID used to identify the joint in a robot model")
+   (joint-position :initarg :joint-position :accessor joint-position
+             :documentation "Position of the robot joint.")
+   (joint-velocity :initarg :joint-velocity :accessor joint-velocity
+             :documentation "Velocity of the robot joint.")
+   (joint-acceleration :initarg :joint-acceleration :accessor joint-acceleration
+                 :documentation "Acceleration of the robot joint.")
+   (joint-effort :initarg :joint-effort :accessor joint-effort
+           :documentation "Effort of the robot joint."))
+  (:documentation "Representation of the state of a single robot joint."))

@@ -29,6 +29,10 @@
 (in-package :cl-user)
 
 (defpackage :cl-robot-models
+  (:nicknames :robot-models)
   (:use #:common-lisp)
-;  (:export )
-)
+  (:export
+   ;; joint-state
+   joint-state joint-name joint-position joint-velocity joint-acceleration joint-effort
+   ;; robot-state
+   robot-state robot-name robot-model joint-states))
