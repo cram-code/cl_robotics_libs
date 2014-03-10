@@ -37,3 +37,30 @@
                  :accessor joint-states
                  :documentation "Hash-table mapping joint-names to joint-states"))
   (:documentation "Representation of state of a single robot."))
+
+(define-condition robot-state-error (simple-error) ())
+
+(defun get-joint-state (robot-state joint-name)
+  "Retrieves joint-state identified with `joint-name' from `robot-state'. If not present,
+ throws error of type 'robot-state-error'."
+  (declare (type robot-state robot-state)
+           (type string joint-name))
+  (multiple-value-bind (joint-state joint-state-present-p)
+      (gethash joint-name (joint-states robot-state))
+    (if joint-state-present-p
+        joint-state
+        (error 'robot-state-error
+               :format-control "Joint '~a' not found in robot-state."
+               :format-arguments (list joint-name)))))
+
+(defun set-joint-state (robot-state joint-state)
+  "Adds/overwrites `joint-state' in `robot-state'."
+  (declare (type robot-state robot-state)
+           (type joint-state joint-state))
+  (setf (gethash (joint-name joint-state) (joint-states robot-state)) joint-state))
+
+(defun remove-joint-state (robot-state joint-name)
+  "Removes the joint-state identified by `joint-name' from `robot-state'."
+  (declare (type robot-state robot-state)
+           (type string joint-name))
+  (remhash joint-name (joint-states robot-state)))

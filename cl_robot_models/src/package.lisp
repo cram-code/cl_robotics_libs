@@ -35,4 +35,5 @@
    ;; joint-state
    joint-state joint-name joint-position joint-velocity joint-acceleration joint-effort
    ;; robot-state
-   robot-state robot-name robot-model joint-states))
+   robot-state robot-name robot-model joint-states get-joint-state set-joint-state
+   remove-joint-state robot-state-error))
