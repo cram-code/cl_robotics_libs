@@ -20,6 +20,8 @@
   
   <run_depend>cl_3d_shapes</run_depend>
   <run_depend>cl_human_shapes</run_depend>
+  <run_depend>cl_robot_models</run_depend>
+  <run_depend>cl_feature_constraints</run_depend>
   
   <export>
     <metapackage/>
