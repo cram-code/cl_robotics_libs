@@ -69,13 +69,13 @@
             :orientation (cl-transforms:make-identity-vector)))
          (relation (make-feature-relation
                     :id "spatula front over pancake center"
-                    :reference "torso_lift_link"
+                    :frame-id "torso_lift_link"
                     :function-type 'above
                     :tool-feature (copy-geometric-feature feature)
                     :object-feature (copy-geometric-feature feature2)))
          (relation2 (copy-feature-relation relation))
          (other-relation (copy-feature-relation relation :id "huhu"))
-         (other-relation2 (copy-feature-relation relation :reference "there"))
+         (other-relation2 (copy-feature-relation relation :frame-id "there"))
          (other-relation3 (copy-feature-relation relation :function-type 'below))
          (other-relation4 
            (copy-feature-relation relation 
@@ -102,7 +102,7 @@
          (relation
            (make-feature-relation
             :id "some relation"
-            :reference "here"
+            :frame-id "here"
             :function-type 'behind
             :tool-feature (copy-geometric-feature feature)
             :object-feature (copy-geometric-feature feature :frame-id "somewhere")))
@@ -155,7 +155,7 @@
          (relation
            (make-feature-relation
             :id "some relation"
-            :reference "here"
+            :frame-id "here"
             :function-type 'behind
             :tool-feature (copy-geometric-feature feature)
             :object-feature (copy-geometric-feature feature :frame-id "somewhere")))

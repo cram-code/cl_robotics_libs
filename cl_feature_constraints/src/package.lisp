@@ -36,7 +36,7 @@
    valid-feature-type-symbol-p valid-feature-type-p make-geometric-feature validate-args 
    point line plane copy-geometric-feature
    ;; feature relations
-   feature-relation reference function-type tool-feature object-feature
+   feature-relation function-type tool-feature object-feature
    valid-relation-functions valid-relation-function-symbol-p valid-relation-type-p
    make-feature-relation above below right left behind infront distance perpendicular
    pointing copy-feature-relation

@@ -43,7 +43,7 @@
 (defclass feature-relation ()
   ((id :initarg :id :accessor id :type string
        :documentation "ID used for identification, possibly human-readable.")
-   (reference :initarg :reference :accessor reference :type string
+   (frame-id :initarg :frame-id :accessor frame-id :type string
               :documentation "TF frame w.r.t. the function is evaluated.")
    (function-type :initarg :function-type :accessor function-type :type symbol
                   :documentation "Symbol denoting 1D function relating two features.")
@@ -62,8 +62,8 @@
 (defparameter *default-relation-id* ""
   "Default id of feature relations.")
 
-(defparameter *default-relation-reference* ""
-  "Default reference of feature relations.")
+(defparameter *default-relation-frame-id* ""
+  "Default frame-id of feature relations.")
 
 (defparameter *default-relation-function-type* :UNKNOWN-RELATION-FUNCTION
   "Default function symbol of feature relations.")
@@ -99,19 +99,19 @@
     (valid-relation-function-symbol-p function-type)))
 
 (defun make-feature-relation (&key (id *default-relation-id*)
-                                (reference *default-relation-reference*)
+                                (frame-id *default-relation-frame-id*)
                                 (function-type *default-relation-function-type*)
                                 (tool-feature *default-tool-feature*)
                                 (object-feature *default-object-feature*)
                                 (validate-args *default-validation-level*))
  "Creates an instance of type 'feature-relation' filling it with the content provided in
  the parameters. If not specified as params, slots are bound to defaults with correct type."
-  (declare (type string id reference)
+  (declare (type string id frame-id)
            (type symbol function-type)
            (type geometric-feature tool-feature object-feature))
   (make-instance 
    'feature-relation
-   :id id :reference reference :function-type function-type
+   :id id :frame-id frame-id :function-type function-type
    :tool-feature tool-feature :object-feature object-feature
    :validate-args validate-args))
 
@@ -127,16 +127,16 @@
             (error "Feature relation '~a' initialized with invalid function-type: ~a"
                   id function-type))))))
 
-(defun copy-feature-relation (relation &key id reference function-type 
+(defun copy-feature-relation (relation &key id frame-id function-type 
                                          tool-feature object-feature)
   "Creates and returns a deep copy of `relation'. If any of the key-arguments are given,
  they are used to initialize the respective slot of the copied feature-relation."
-  (with-slots ((old-id id) (old-reference reference) (old-function-type function-type)
+  (with-slots ((old-id id) (old-frame-id frame-id) (old-function-type function-type)
                (old-tool-feature tool-feature) (old-object-feature object-feature))
       relation
     (make-feature-relation 
      :id (or id old-id)
-     :reference (or reference old-reference)
+     :frame-id (or frame-id old-frame-id)
      :function-type (or function-type old-function-type)
      :tool-feature (or tool-feature old-tool-feature)
      :object-feature (or object-feature old-object-feature))))
@@ -144,6 +144,6 @@
 (defmethod print-object ((object feature-relation) stream)
   "Clumsy printing of an fccl feature relation."
   (print-unreadable-object (object stream :type t)
-    (with-slots (id reference function-type tool-feature object-feature) object
-        (format stream "~%id: ~s ~%reference: ~s ~%type: ~a ~%tool: ~a ~%object: ~a"
-                id reference function-type tool-feature object-feature))))
+    (with-slots (id frame-id function-type tool-feature object-feature) object
+        (format stream "~%id: ~s ~%frame-id: ~s ~%type: ~a ~%tool: ~a ~%object: ~a"
+                id frame-id function-type tool-feature object-feature))))

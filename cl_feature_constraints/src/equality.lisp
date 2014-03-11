@@ -50,7 +50,7 @@
   (or (eq a b)
       (and
        (string= (id a) (id b))
-       (string= (reference a) (reference b))
+       (string= (frame-id a) (frame-id b))
        (eql (function-type a) (function-type b))
        (equal-p (tool-feature a) (tool-feature b))
        (equal-p (object-feature a) (object-feature b)))))
