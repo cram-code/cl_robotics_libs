@@ -34,6 +34,7 @@
   (:export
    ;; joint-state
    joint-state joint-name joint-position joint-velocity joint-acceleration joint-effort
+   make-joint-state
    ;; robot-state
    robot-state robot-name robot-model joint-states get-joint-state set-joint-state
-   remove-joint-state robot-state-error))
+   remove-joint-state robot-state-error make-robot-state))

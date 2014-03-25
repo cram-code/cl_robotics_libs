@@ -40,6 +40,15 @@
 
 (define-condition robot-state-error (simple-error) ())
 
+(defun make-robot-state (robot-name robot-model joint-states)
+  (declare (type string robot-name robot-model)
+           (type list joint-states))
+  (let ((robot-state (make-instance 'robot-state 
+                                    :robot-name robot-name :robot-model robot-model)))
+    (loop for joint-state in joint-states do 
+      (set-joint-state robot-state joint-state))
+    robot-state))
+
 (defun get-joint-state (robot-state joint-name)
   "Retrieves joint-state identified with `joint-name' from `robot-state'. If not present,
  throws error of type 'robot-state-error'."

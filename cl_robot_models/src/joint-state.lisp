@@ -40,3 +40,11 @@
    (joint-effort :initarg :joint-effort :accessor joint-effort
            :documentation "Effort of the robot joint."))
   (:documentation "Representation of the state of a single robot joint."))
+
+(defun make-joint-state (&key joint-name joint-position joint-velocity
+                           joint-acceleration joint-effort)
+  (declare (type string joint-name))
+  (make-instance 
+   'joint-state
+   :joint-name joint-name :joint-position joint-position :joint-velocity joint-velocity
+   :joint-acceleration joint-acceleration :joint-effort joint-effort))
