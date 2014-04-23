@@ -39,4 +39,8 @@
    control
    control-step
    ;; Accessor functions
-   state-function))
+   state-function
+   ;; Helper functions
+   make-plant
+   make-controller
+   make-p-controller))

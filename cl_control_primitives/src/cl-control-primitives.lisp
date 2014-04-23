@@ -42,6 +42,36 @@
   ((controller-function :reader controller-function
                         :initarg :controller-function)))
 
+(defun make-plant (control-function state-function inputs outputs)
+  (make-instance
+   'controllable
+   :control-function control-function
+   :state-function state-function
+   :inputs inputs
+   :outputs outputs))
+
+(defun make-controller (controller-function inputs outputs)
+  (make-instance
+   'controller
+   :controller-function controller-function
+   :inputs inputs
+   :outputs outputs))
+
+(defun make-p-controller (reference-value gain &key min max)
+  (make-controller (lambda (x)
+                     (let* ((strength (* (- x reference-value) gain))
+                            (saturated-strength
+                              (cond (max
+                                     (* (signum strength)
+                                        (min (abs strength) (abs max))))
+                                    (t strength)))
+                            (elevated-strength
+                              (cond (min
+                                     (* (signum saturated-strength)
+                                        (max (abs saturated-strength) (abs min))))
+                                    (t saturated-strength))))
+                       (- elevated-strength))) 1 1))
+
 (defun control (plant controllers threshold-function
                 &optional wait-time io-in io-out)
   (let* ((controllers-inputs (loop for controller in controllers
