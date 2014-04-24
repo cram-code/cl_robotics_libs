@@ -35,4 +35,5 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "pid" :depends-on ("package"))))))
+     (:file "controller-interface" :depends-on ("package"))
+     (:file "pid" :depends-on ("controller-interface" "package"))))))

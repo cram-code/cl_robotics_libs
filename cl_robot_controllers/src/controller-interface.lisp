@@ -26,14 +26,6 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(in-package :cl-user)
+(in-package :robot-controllers)
 
-(defpackage :cl-robot-controllers
-  (:nicknames :robot-controllers)
-  (:use #:common-lisp)
-  ;; (:export
-  ;;  ;; PID
-  ;;  pid-gains make-pid-gains copy-pid-gains p-gains-p p-gain i-gain d-gain i-max i-min
-  ;;  pid make-pid copy-pid pid-p gains last-i-term last-error compute-command
-  ;;  pid-controller-error)
-  )
+(defgeneric compute-command (controller &key &allow-other-keys))
