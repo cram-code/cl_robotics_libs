@@ -28,121 +28,99 @@
 
 (in-package :cl-robot-controllers-tests)
 
-;; (define-test pid-gains-basics ()
-;;   "Checks whether creating and getting of pid gains works."
-;;   (let ((gains (make-pid-gains :p-gain 1.0 :d-gain -2.0 :i-max 0.1)))
-;;     (with-slots (p-gain i-gain d-gain i-max i-min) gains
-;;       (assert-equal p-gain 1.0)
-;;       (assert-equal i-gain 0.0)
-;;       (assert-equal d-gain -2.0)
-;;       (assert-equal i-max 0.1)
-;;       (assert-equal i-min 0.0))))
+(define-test p-controller ()
+  "In-depth unit-tests for p-controller."
+  (let* ((controller (make-p-controller 1.0))
+         (controller2 (copy-p-controller controller))
+         (controller3 (copy-p-controller controller :p-gain 2.0)))
+    (assert-number-equal 1.0 (p-gain controller))
+    (assert-number-equal (p-gain controller) (p-gain controller2))
+    (assert-number-equal 2.0 (p-gain controller3))
+    (assert-false (eq controller controller2))
+    (assert-false (eq controller controller3))
+    (assert-number-equal 1.0 (compute-command controller :error 1.0))
+    (assert-number-equal 1.0 (compute-command controller2 :error 1.0 :dt 0.0))
+    (assert-number-equal 1.0 (compute-command controller3 :error 0.5 :dt 0.001))
+    (assert-number-equal 1.0 (p-gain controller))
+    (assert-number-equal (p-gain controller) (p-gain controller2))
+    (assert-number-equal 2.0 (p-gain controller3))))
 
-;; (define-test pid-controller-basics ()
-;;   "Checks whether creating and getting of slots of pid-controller works."
-;;   (let ((controller (make-pid :gains (make-pid-gains :p-gain 1.0) :last-i-term 12.1)))
-;;     (with-slots (gains last-i-term last-error) controller
-;;       (assert-equalp gains (make-pid-gains :p-gain 1.0))
-;;       (assert-equal last-i-term 12.1)
-;;       (assert-equal last-error 0.0))))
+(define-test i-controller ()
+  "In-depth unit-tests for i-controller."
+  (let* ((controller (make-i-controller 1.0 10.0 -10.0))
+         (controller2 (copy-i-controller controller))
+         (controller3 (copy-i-controller controller :i-gain 2.0 :i-max 20.0 :i-min -20.0
+                                         :integrated-error 2.5))
+         (controller4 (make-i-controller 1.0 10.0 -10.0 1.5)))
+    ;; CHECKING CONTRUCTOR AND COPY
+    (assert-number-equal 1.0 (i-gain controller))
+    (assert-number-equal -10.0 (i-min controller))
+    (assert-number-equal 10.0 (i-max controller))
+    (assert-number-equal 0.0 (integrated-error controller))
+    (assert-false (eq controller controller2))
+    (assert-number-equal 1.0 (i-gain controller2))
+    (assert-number-equal -10.0 (i-min controller2))
+    (assert-number-equal 10.0 (i-max controller2))
+    (assert-number-equal 0.0 (integrated-error controller2))
+    (assert-false (eq controller controller3))
+    (assert-number-equal 2.0 (i-gain controller3))
+    (assert-number-equal -20.0 (i-min controller3))
+    (assert-number-equal 20.0 (i-max controller3))
+    (assert-number-equal 2.5 (integrated-error controller3))
+    (assert-number-equal 1.0 (i-gain controller4))
+    (assert-number-equal -10.0 (i-min controller4))
+    (assert-number-equal 10.0 (i-max controller4))
+    (assert-number-equal 1.5 (integrated-error controller4))
+    ;; CHECKING COMPUTATION
+    (assert-number-equal 1.5 (compute-command controller :error 1.0 :dt 1.5))
+    (assert-number-equal 1.5 (integrated-error controller))
+    (assert-number-equal 2.5 (compute-command controller :error 1.0 :dt 1.0))
+    (assert-number-equal 10.0 (compute-command controller :error 10.0 :dt 1.0))
+    (assert-number-equal 9.0 (compute-command controller :error -1.0 :dt 1.0))
+    (assert-number-equal -10.0 (compute-command controller :error -11.0 :dt 2.0))
+    ;; CHECKING ERROR CATCHING
+    (assert-error 'error (compute-command controller :error -11.0 :dt 0.0))
+    (assert-error 'error (compute-command controller :error -11.0 :dt -0.1))
+    (setf (i-min controller) (+ 1 (i-max controller)))
+    (assert-error 'error (compute-command controller :error 1.0 :dt 1.5))))
+
+(define-test d-controller ()
+  "In-depth unit-tests for d-controller."
+  (let* ((controller (make-d-controller 1.0))
+         (controller2 (copy-d-controller controller))
+         (controller3 (copy-d-controller controller :d-gain 2.0 :last-error 1.5))
+         (controller4 (make-d-controller 1.0 2.0)))
+    ;; CHECKING CONSTRUCTOR AND COPYING
+    (assert-number-equal 1.0 (d-gain controller))
+    (assert-number-equal 0.0 (last-error controller))
+    (assert-number-equal 1.0 (d-gain controller2))
+    (assert-number-equal 0.0 (last-error controller2))
+    (assert-false (eq controller controller2))
+    (assert-number-equal 2.0 (d-gain controller3))
+    (assert-number-equal 1.5 (last-error controller3))
+    (assert-false (eq controller controller3))
+    (assert-number-equal 1.0 (d-gain controller4))
+    (assert-number-equal 2.0 (last-error controller4))
+    ;; CHECK COMPUTATION
+    (assert-number-equal 2 (compute-command controller :error 1.0 :dt 0.5))
+    (assert-number-equal 1 (last-error controller))
+    (assert-number-equal 0 (compute-command controller :error 1.0 :dt 0.5))
+    ;; CHECK ERROR CATCHING
+    (assert-error 'error (compute-command controller :error 1.0 :dt 0.0))
+    (assert-error 'error (compute-command controller :error 1.0 :dt -0.1))))
     
-;; (define-test p-control ()
-;;   "Checks whether we can use the PID as a simple p-controller."
-;;   (let* ((controller (make-pid :gains (make-pid-gains :p-gain 2.0)))
-;;          (controller-copy (copy-pid controller)))
-;;     (multiple-value-bind (command new-controller) (compute-command controller 3.0 0.1)
-;;       (with-slots (gains last-i-term last-error) new-controller
-;;         (assert-equal command 6.0)
-;;         (assert-equal last-error 3.0)
-;;         (assert-equal last-i-term 0.0)
-;;         (assert-equalp gains (slot-value new-controller 'gains))
-;;         (assert-equalp controller controller-copy)))))
 
-;; (define-test i-control ()
-;;   "Checks whether we can use the PID as a simple i-controller."
-;;   (let* ((controller 
-;;            (make-pid :gains (make-pid-gains :i-gain 2.0 :i-min -10.0 :i-max 10.0)))
-;;          (controller-copy (copy-pid controller)))
-;;     (multiple-value-bind (command new-controller) (compute-command controller 3.0 0.1)
-;;       (with-slots (gains last-i-term last-error) new-controller
-;;         (assert-equal command 0.6)
-;;         (assert-equal last-error 3.0)
-;;         (assert-equal last-i-term 0.6)
-;;         (assert-equalp gains (slot-value new-controller 'gains))
-;;         (assert-equalp controller controller-copy)))))
-
-;; (define-test limit-i-term ()
-;;   "Checks whether limiting the i-term works as expected."
-;;   (let* ((controller1 (make-pid :gains (make-pid-gains :i-gain 2.0)))
-;;          (controller2 (make-pid :gains (make-pid-gains :i-gain 2.0 :i-min -5 :i-max 10)))
-;;          (controller3 (make-pid :gains (make-pid-gains :i-gain 2.0 :i-min 10 :i-max 10))))
-;;     ;; CONTROLLER WITH LIMITS OF 0 SHALL HAVE NO I-TERM
-;;     (multiple-value-bind (command new-controller) (compute-command controller1 1 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 0.0))
-;;     (multiple-value-bind (command new-controller) (compute-command controller1 -2 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 0.0))
-;;     ;; CONTROLLER WITH NON-0 LIMITS SHOULD LIMIT I-TERMS TO THEM
-;;     (multiple-value-bind (command new-controller) (compute-command controller2 3 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 6.0))
-;;     (multiple-value-bind (command new-controller) (compute-command controller2 -1.5 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command -3.0))
-;;     (multiple-value-bind (command new-controller) (compute-command controller2 6 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 10.0))
-;;     (multiple-value-bind (command new-controller) (compute-command controller2 -3 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command -5.0))
-;;     ;;CONTROLLER WITH A EQUAL LIMITS SHOULD ALWAYS RETURN THEM AS I-TERM
-;;     (multiple-value-bind (command new-controller) (compute-command controller3 6 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 10.0))
-;;     (multiple-value-bind (command new-controller) (compute-command controller3 -3 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 10.0))
-;;     (multiple-value-bind (command new-controller) (compute-command controller3 0 1)
-;;         (declare (ignore new-controller))
-;;       (assert-equal command 10.0))))
-
-;; (define-test signal-error-limits-not-sane ()
-;;   "Checks whether an error is signal in case the limits for the i-term are not sane."
-;;   (let ((controller (make-pid :gains (make-pid-gains :i-min 0.1))))
-;;     (assert-error 'pid-controller-error (compute-command controller 1.0 1.0))))
-
-;; (define-test d-control ()
-;;   "Checks whether we can use the PID controller as a simple D controller."
-;;   (let* ((controller 
-;;            (make-pid :gains (make-pid-gains :d-gain 2.0)))
-;;          (controller-copy (copy-pid controller)))
-;;     (multiple-value-bind (command new-controller) (compute-command controller 3.0 0.1)
-;;       (with-slots (gains last-i-term last-error) new-controller
-;;         (assert-equal command 60.0)
-;;         (assert-equal last-error 3.0)
-;;         (assert-equal last-i-term 0.0)
-;;         (assert-equalp gains (slot-value new-controller 'gains))
-;;         (assert-equalp controller controller-copy)))))
-
-;; (define-test pid-control ()
-;;   "Checks basic PID control behavior over two cycles."
-;;   (let* ((controller (make-pid :gains (make-pid-gains :p-gain 1.0 :i-gain 2.0 :d-gain 3.0
-;;                                                       :i-min -2.0 :i-max 2.0))))
-;;     (multiple-value-bind (command new-controller) (compute-command controller 3.0 0.1)
-;;       (with-slots (gains last-i-term last-error) new-controller
-;;         (assert-equal command 93.6)
-;;         (assert-equal last-error 3.0)
-;;         (assert-equal last-i-term 0.6)
-;;         (assert-equalp gains (slot-value new-controller 'gains)))
-;;       (multiple-value-bind (command new-controller) (compute-command new-controller 2.0 0.1)
-;;         (with-slots (gains last-i-term last-error) new-controller
-;;           (assert-equal command -27.0)
-;;           (assert-equal last-error 2.0)
-;;           (assert-equal last-i-term 1.0)
-;;           (assert-equalp gains (slot-value new-controller 'gains)))))))
-
-;; (define-test signal-error-incorrect-dt ()
-;;   "Checks whether we get an error signaled if dt is not positive."
-;;   (assert-error 'pid-controller-error (compute-command (make-pid) 1.0 0.0))
-;;   (assert-error 'pid-controller-error (compute-command (make-pid) 1.0 -0.1)))
+(define-test pid-control ()
+  "Checks basic PID control behavior over two cycles."
+  (let* ((controller (make-pid-controller
+                      (make-p-controller 1.0)
+                      (make-i-controller 2.0 2.0 -2.0)
+                      (make-d-controller 3.0))))
+    ;; cycle 1
+    (assert-number-equal 93.6 (compute-command controller :error 3.0 :dt 0.1))
+    (assert-number-equal 3 (last-error (d-controller controller)))
+    (assert-number-equal 0.6 (integrated-error (i-controller controller)))
+    ;; cycle 2
+    (assert-number-equal -27.0 (compute-command controller :error 2.0 :dt 0.1))
+    (assert-number-equal 2 (last-error (d-controller controller)))
+    (assert-number-equal 1.0 (integrated-error (i-controller controller)))))
