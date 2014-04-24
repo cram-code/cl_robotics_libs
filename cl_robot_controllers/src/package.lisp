@@ -31,9 +31,19 @@
 (defpackage :cl-robot-controllers
   (:nicknames :robot-controllers)
   (:use #:common-lisp)
-  ;; (:export
-  ;;  ;; PID
-  ;;  pid-gains make-pid-gains copy-pid-gains p-gains-p p-gain i-gain d-gain i-max i-min
-  ;;  pid make-pid copy-pid pid-p gains last-i-term last-error compute-command
-  ;;  pid-controller-error)
-  )
+  (:export
+   ;; CONTROLLER-INTERFACE
+   compute-command
+   ;; P-CONTROLLER
+   p-controller p-gain make-p-controller copy-p-controller error
+   ;; I-CONTROLLER
+   i-controller i-gain i-max i-min integrated-error make-i-controller
+   copy-i-controller dt
+   ;; D-CONTROLLER
+   d-controller d-gain last-error make-d-controller copy-d-controller
+   ;; PD-CONTROLLER
+   pd-controller make-pd-controller copy-pd
+   ;; PI-CONTROLLER
+   pid-controller make-pid-controller copy-pid-controller
+   ;; PID-CONTROLLER
+   pid-controller make-pid-controller copy-pid-controller))
