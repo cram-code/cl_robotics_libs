@@ -112,30 +112,40 @@
                `(,x))
              plant-state-values)))
          (mapped-state (mmult io-in plant-state))
-         (controller-index 0))
+         (controller-index 0)
+         (mapping-index 0))
     (let* ((control-out
              (loop for controller in controllers
                    as inputs = (inputs controller)
-                   as state = (array-slice mapped-state controller-index)
-                   as control-in = (subseq (1d-array-to-list state)
-                                           0
-                                           (inputs controller))
+                   as state = (loop for i from mapping-index below (+ mapping-index inputs)
+                                    collect (progn
+                                              (first (1d-array-to-list (array-slice mapped-state i)))))
+                   ;; as control-in = (subseq (1d-array-to-list state)
+                   ;;                         0
+                   ;;                         (inputs controller))
                    collect (progn
                              (incf controller-index)
+                             (incf mapping-index inputs)
                              (apply (controller-function controller)
-                                    (first control-in)
-                                    (rest control-in)))))
+                                    (first state)
+                                    (rest state)))))
+           (controllers-outputs (loop for controller in controllers
+                                    summing (outputs controller)))
            (ctrl-len (length control-out))
+           (ctrl-out (make-array
+                      `(,controllers-outputs ,ctrl-len)
+                      :initial-contents ;; Hack
+                      (first (mapcar (lambda (x)
+                                                   (mapcar (lambda (y)
+                                                             `(,y))
+                                                           x))
+                                                 control-out))))
            (plant-in
              (alexandria:flatten
               (2d-array-to-list
                (mmult
                 io-out
-                (make-array
-                 `(,ctrl-len 1)
-                 :initial-contents
-                 (loop for i from 0 below ctrl-len
-                       collect `(,(elt control-out i)))))))))
+                ctrl-out)))))
       (apply (control-function plant)
              (first plant-in) (rest plant-in)))))
 
