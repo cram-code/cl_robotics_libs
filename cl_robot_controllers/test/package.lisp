@@ -29,4 +29,5 @@
 (in-package :cl-user)
 
 (defpackage :cl-robot-controllers-tests
+  (:nicknames :robot-controllers-tests)
   (:use #:common-lisp #:cl-robot-controllers #:lisp-unit))
