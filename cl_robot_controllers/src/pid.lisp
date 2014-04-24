@@ -107,123 +107,136 @@
 ;;;
 ;;; MACRO TO WRITE COMPOUND CONTROLLERS
 ;;;
-
-(defun def-controller-class (name-prefix)
-  (labels ((generate-class-name (prefix)
-             (string-upcase (concatenate 'string prefix "-controller")))
-           (generate-class-symbol (prefix)
-             (intern (generate-class-name prefix)))
-           (generate-slot-list (prefix)
-             (map 'list 
-                  (lambda (pre) 
-                    (let* ((slot-name (string-upcase
-                                       (concatenate 
-                                        'string (string pre) "-controller")))
-                           (slot-symbol (intern slot-name))
-                           (slot-keyword (intern slot-name "KEYWORD")))
-                      `(,slot-symbol :initform (make-instance ',slot-symbol)
-                                     :initarg ,slot-keyword
-                                     :accessor ,slot-symbol
-                                     :type ,slot-symbol)))
-                  prefix))
-           (generate-doc-string (prefix)
-             (concatenate 'string "A simple compound " (generate-class-name prefix) ".")))
-    `(defclass ,(generate-class-symbol name-prefix) () 
-       ,(generate-slot-list name-prefix)
-       (:documentation ,(generate-doc-string name-prefix)))))
  
-;;; TODO(Georg): consider rewriting this by introspecting the type. After all, it should
-;;;              already be written and compiled, right?
-(defun def-controller-constructor (name-prefix)
-  (labels ((to-symbol (name) (intern (string-upcase name)))
-           (to-keyword (name) (intern (string-upcase name) "KEYWORD"))
-           (controller-name (prefix) (concatenate 'string prefix "-controller"))
-           (controller-symbol (prefix) (to-symbol (controller-name prefix)))
-           (slot-names (prefix)
-             (map 
-              'list
-              (lambda (pre) (concatenate 'string (string pre) "-controller"))
-              prefix))
-           (constructor-name (prefix)
-             (concatenate 'string "make-" (controller-name prefix)))
-           (constructor-symbol (prefix)
-             (to-symbol (constructor-name prefix)))
-           (constructor-params (prefix)
-             (mapcar (lambda (slot-name) (to-symbol slot-name))
-                     (slot-names prefix)))
-           (init-arguments (prefix)
-             (apply #'append 
-                    (mapcar (lambda (slot-name)
-                              `(,(to-keyword slot-name) ,(to-symbol slot-name)))
-                            (slot-names prefix)))))
-    `(defun ,(constructor-symbol name-prefix)
-         ,(constructor-params name-prefix)
-       (make-instance ',(controller-symbol name-prefix)
-                      ,@(init-arguments name-prefix)))))
-
-(defun def-controller-copier (name-prefix)
-  (labels ((to-symbol (name) (intern (string-upcase name)))
-           (controller-name (prefix) (concatenate 'string prefix "-controller"))
-           (controller-symbol (prefix) (to-symbol (controller-name prefix)))
-           (slot-name (prefix) (concatenate 'string (string prefix) "-controller"))
-           (slot-names (prefix) (map 'list #'slot-name prefix))
-           (aux-slot-name (prefix) 
-             (concatenate 'string "old-" (string prefix) "-controller"))
-           (aux-slot-names (prefix) (map 'list #'aux-slot-name prefix))
-           (constructor-name (prefix)
-             (concatenate 'string "make-" (controller-name prefix)))
-           (constructor-symbol (prefix)
-             (to-symbol (constructor-name prefix)))
-           (copier-name (prefix) (concatenate 'string "copy-" (controller-name prefix)))
-           (copier-symbol (prefix) (to-symbol (copier-name prefix)))
-           (copier-lambda (prefix)
-             `(,(controller-symbol prefix) 
-                &key ,@(mapcar #'to-symbol (slot-names prefix))))
-           (copier-body (prefix)
-             `(with-slots 
-                    ,(mapcar (lambda (slot-name aux-slot-name)
-                               `(,(to-symbol aux-slot-name) ,(to-symbol slot-name)))
-                      (slot-names prefix) (aux-slot-names prefix))
-                  ,(controller-symbol prefix)
-                (,(constructor-symbol prefix)
-                 ,@(mapcar (lambda (slot-name aux-slot-name)
-                            `(or ,(to-symbol slot-name) ,(to-symbol aux-slot-name)))
-                          (slot-names prefix) (aux-slot-names prefix))))))
-    `(defun ,(copier-symbol name-prefix) ,(copier-lambda name-prefix)
-       ,(copier-body name-prefix))))
-
-(defun def-controller-computation (name-prefix)
-  (labels ((to-symbol (name) (intern (string-upcase name)))
-           (controller-name (prefix) (concatenate 'string prefix "-controller"))
-           (controller-symbol (prefix) (to-symbol (controller-name prefix)))
-           (slot-name (prefix) (concatenate 'string (string prefix) "-controller"))
-           (slot-names (prefix) (map 'list #'slot-name prefix))
-           (computation-body (prefix) 
-             `(with-slots ,(mapcar #'to-symbol (slot-names prefix))
-                  ,(controller-symbol prefix)
-                (+ ,@(mapcar (lambda (slot-name)
-                               `(compute-command ,(to-symbol slot-name)
-                                                 :error error :dt dt))
-                             (slot-names prefix))))))
-    `(defmethod compute-command 
-         (,(controller-symbol name-prefix) &key error dt &allow-other-keys)
-       ,(computation-body name-prefix))))
+;;;
+;;; REFERENCE IMPLEMENTATION: PID-CONTROLLER
+;;; (def-compound-controller t t t) should deliver this:
+;;;
+;;; (defclass pid-controller ()
+;;;   ((p-controller :initform (make-instance 'p-controller) :initarg :p-controller
+;;;                  :accessor p-controller :type p-controller)
+;;;    (i-controller :initform (make-instance 'i-controller) :initarg :i-controller
+;;;                  :accessor i-controller :type i-controller)
+;;;    (d-controller :initform (make-instance 'd-controller) :initarg :d-controller
+;;;                  :accessor d-controller :type d-controller))
+;;;   (:documentation "A simple compound PID-controller."))
+;;;
+;;; (defun make-pid-controller (p-controller i-controller d-controller)
+;;;   (make-instance 'pid-controller :p-controller p-controller :i-controller i-controller
+;;;                                  :d-controller d-controller))
+;;;
+;;; (defun copy-pid-controller (pid-controller &key p-controller i-controller d-controller)
+;;;   (with-slots ((old-p-controller p-controller) (old-i-controller i-controller)
+;;;                (old-d-controller)) pid-controller
+;;;     (make-pid-controller (or p-controller old-p-controller) 
+;;;                          (or i-controller old-i-controller)
+;;;                          (or d-controller old-d-controller))))
+;;;
+;;; (defmethod compute-command (pid-controller &key error dt &allow-other-keys)
+;;;   (with-slots (p-controller i-controller d-controller) pid-controller
+;;;     (+ (compute-command p-controller :error error :dt dt)
+;;;        (compute-command i-controller :error error :dt dt)
+;;;        (compute-command d-controller :error error :dt dt))))
+;;;
 
 (defmacro def-compound-controller (p-controller-p i-controller-p d-controller-p)
+;;; TODO(Georg): consider rewriting the function and method definitions by
+;;;              introspection of the type. After all, it should already be
+;;;              written and compiled after the first line of the macro, right?
   (declare (type boolean p-controller-p i-controller-p d-controller-p))
   (let ((configuration-list (list p-controller-p i-controller-p d-controller-p)))
     ;; make sure that at least two of the controller types are present
-    (when (< 1 (reduce #'+ configuration-list :key (lambda (elem) (if elem 1 0))))
-      (let ((name-prefix (concatenate 'string
-                                       (when p-controller-p "P")
-                                       (when i-controller-p "I")
-                                       (when d-controller-p "D"))))
-        `(progn
-          ,(def-controller-class name-prefix)
-          ,(def-controller-constructor name-prefix)
-          ,(def-controller-copier name-prefix)
-          ,(def-controller-computation name-prefix)))
-        )))
+    (if (>= 1 (reduce #'+ configuration-list :key (lambda (elem) (if elem 1 0))))
+        (warn "DEF-COMPOUND-CONTROLLER with less than 2 controllers: p: ~a, i: ~a, d: ~d."
+              p-controller-p i-controller-p d-controller-p)
+        (labels ((name-prefix (p i d)
+                   (concatenate 'string (when p "P") (when i "I") (when d "D")))
+                 (to-symbol (name) (intern (string-upcase name)))
+                 (to-keyword (name) (intern (string-upcase name) "KEYWORD"))
+                 (controller-name (prefix)
+                   (concatenate 'string prefix "-controller"))
+                 (controller-symbol (prefix)
+                   (to-symbol (controller-name prefix)))
+                 (slot-name (pre) (concatenate 'string (string pre) "-controller"))
+                 (slot-names (prefix) (map 'list #'slot-name prefix))
+                 (slot-symbols (prefix) (mapcar #'to-symbol (slot-names prefix)))
+                 (slot-keywords (prefix) (mapcar #'to-keyword (slot-names prefix)))
+                 ;; CLASS DEFINITION STUFF
+                 (controller-slot-specifier (prefix)
+                   (mapcar (lambda (slot-symbol slot-keyword)
+                             `(,slot-symbol :initform (make-instance ',slot-symbol)
+                                            :initarg ,slot-keyword
+                                            :accessor ,slot-symbol
+                                            :type ,slot-symbol))
+                           (slot-symbols prefix) (slot-keywords prefix)))
+                 (controller-doc-string (prefix)
+                   (concatenate 'string "A simple compound " (controller-name prefix) "."))
+                 (controller-class-definition (prefix)
+                   `(defclass ,(controller-symbol prefix) () 
+                      ,(controller-slot-specifier prefix)
+                      (:documentation ,(controller-doc-string prefix))))
+                 ;; CONSTRUCTOR STUFF
+                 (constructor-name (prefix)
+                   (concatenate 'string "make-" (controller-name prefix)))
+                 (constructor-symbol (prefix)
+                   (to-symbol (constructor-name prefix)))
+                 (constructor-body (prefix)
+                   `(make-instance
+                     ',(controller-symbol prefix)
+                     ,@(apply #'append 
+                              (mapcar (lambda (slot-keyword slot-symbol)
+                                        `(,slot-keyword ,slot-symbol))
+                                      (slot-keywords prefix) (slot-symbols prefix)))))
+                 (controller-constructor (prefix)
+                   `(defun ,(constructor-symbol prefix)
+                        ,(slot-symbols prefix)
+                      ,(constructor-body prefix)))
+                 ;; COPY CONSTRUCTOR STUFF
+                 (aux-slot-name (prefix) 
+                   (concatenate 'string "old-" (string prefix) "-controller"))
+                 (aux-slot-names (prefix) (map 'list #'aux-slot-name prefix))
+                 (aux-slot-symbols (prefix) (mapcar #'to-symbol (aux-slot-names prefix)))
+                 (copier-name (prefix) 
+                   (concatenate 'string "copy-" (controller-name prefix)))
+                 (copier-symbol (prefix) (to-symbol (copier-name prefix)))
+                 (copier-lambda (prefix)
+                   `(,(controller-symbol prefix) &key ,@(slot-symbols prefix)))
+                 (copier-body (prefix)
+                   `(with-slots 
+                          ,(mapcar (lambda (slot-symbol aux-slot-symbol)
+                                     `(,aux-slot-symbol ,slot-symbol))
+                            (slot-symbols prefix) (aux-slot-symbols prefix))
+                        ,(controller-symbol prefix)
+                      (,(constructor-symbol prefix)
+                       ,@(mapcar (lambda (slot-symbol aux-slot-symbol)
+                                   `(or ,slot-symbol ,aux-slot-symbol))
+                                 (slot-symbols prefix) (aux-slot-symbols prefix)))))
+                 (controller-copier (prefix)
+                   `(defun ,(copier-symbol prefix) ,(copier-lambda prefix)
+                      ,(copier-body prefix)))
+                 ;; COMPUTE-COMMAND STUFF
+                 (computation-body (prefix) 
+                   `(with-slots ,(slot-symbols prefix) ,(controller-symbol prefix)
+                      (+ ,@(mapcar (lambda (slot-symbol)
+                                     `(compute-command ,slot-symbol :error error :dt dt))
+                                   (slot-symbols prefix)))))
+                 (controller-computation (prefix)
+                   `(defmethod compute-command 
+                        (,(controller-symbol prefix) &key error dt &allow-other-keys)
+                      ,(computation-body prefix))))
+          ;; ACTUAL MACRO
+          `(progn
+             ,(controller-class-definition 
+               (name-prefix p-controller-p i-controller-p d-controller-p))
+
+             ,(controller-constructor
+               (name-prefix p-controller-p i-controller-p d-controller-p))
+
+             ,(controller-copier
+               (name-prefix p-controller-p i-controller-p d-controller-p))
+
+             ,(controller-computation
+               (name-prefix p-controller-p i-controller-p d-controller-p)))))))
              
 
 ;;;
@@ -231,41 +244,10 @@
 ;;;
 
 ;; PI-CONTROLLER
-; (def-compound-controller t t nil)
+(def-compound-controller t t nil)
 
 ;; PD-CONTROLLER
-; (def-compound-controller t nil t)
+(def-compound-controller t nil t)
 
 ;; PID-CONTROLLER
-; (def-compound-controller t t t)
-
-;;;
-;;; REFERENCE IMPLEMENTATION: PID-CONTROLLER
-;;; (def-compound-controller t t t) should deliver this:
-;;;
-
-;; (defclass pid-controller ()
-;;   ((p-controller :initform (make-instance 'p-controller) :initarg :p-controller
-;;                  :accessor p-controller :type p-controller)
-;;    (i-controller :initform (make-instance 'i-controller) :initarg :i-controller
-;;                  :accessor i-controller :type i-controller)
-;;    (d-controller :initform (make-instance 'd-controller) :initarg :d-controller
-;;                  :accessor d-controller :type d-controller))
-;;   (:documentation "A simple compound PID-controller."))
-
-;; (defun make-pid-controller (p-controller i-controller d-controller)
-;;   (make-instance 'pid-controller :p-controller p-controller :i-controller i-controller
-;;                                  :d-controller d-controller))
-
-;; (defun copy-pid-controller (pid-controller &key p-controller i-controller d-controller)
-;;   (with-slots ((old-p-controller p-controller) (old-i-controller i-controller)
-;;                (old-d-controller)) pid-controller
-;;     (make-pid-controller (or p-controller old-p-controller) 
-;;                          (or i-controller old-i-controller)
-;;                          (or d-controller old-d-controller))))
-
-;; (defmethod compute-command (pid-controller &key error dt &allow-other-keys)
-;;   (with-slots (p-controller i-controller d-controller) pid-controller
-;;     (+ (compute-command p-controller :error error :dt dt)
-;;        (compute-command i-controller :error error :dt dt)
-;;        (compute-command d-controller :error error :dt dt))))
+(def-compound-controller t t t)
