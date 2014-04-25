@@ -28,4 +28,19 @@
 
 (in-package :robot-controllers)
 
-(defgeneric compute-command (controller &key &allow-other-keys))
+(defclass controller () ()
+  (:documentation "Non-functional default controller."))
+
+(defclass controller-configuration () ()
+  (:documentation "Empty default controller configuration."))
+
+;;; TODO(Georg): consider turning keys into &rest and using destructuring-bind
+(defgeneric make-controller (configuration &key &allow-other-keys)
+  (:documentation "Creates a controller from `configuration'.")
+  (:method ((configuration controller-configuration) &key &allow-other-keys)
+    (warn "Controller configuration of unknown type '~a'. Skipping~%" configuration)))
+
+(defgeneric compute-command (controller &key &allow-other-keys)
+  (:documentation "Computes the command of `controller' for input given as key params.")
+  (:method ((controller controller) &key &allow-other-keys)
+    (warn "Controller of unknown type: '~a'. Skipping~%" controller)))
