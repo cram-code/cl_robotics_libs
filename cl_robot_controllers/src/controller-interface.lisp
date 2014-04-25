@@ -31,15 +31,18 @@
 (defclass controller () ()
   (:documentation "Non-functional default controller."))
 
-(defclass controller-configuration () ()
+(defclass controller-configuration () 
+  ((hashed-content :initform (make-hash-table :test 'equal) :initarg :hashed-content
+                   :accessor hashed-content :type hash-table
+                   :documentation "A hash-table to stuff content for prototyping."))
   (:documentation "Empty default controller configuration."))
 
-;;; TODO(Georg): consider turning keys into &rest and using destructuring-bind
-(defgeneric make-controller (configuration &key &allow-other-keys)
+(defgeneric make-controller (configuration)
   (:documentation "Creates a controller from `configuration'.")
-  (:method ((configuration controller-configuration) &key &allow-other-keys)
+  (:method ((configuration controller-configuration))
     (warn "Controller configuration of unknown type '~a'. Skipping~%" configuration)))
 
+;;; TODO(Georg): consider turning keys into &rest and using destructuring-bind
 (defgeneric compute-command (controller &key &allow-other-keys)
   (:documentation "Computes the command of `controller' for input given as key params.")
   (:method ((controller controller) &key &allow-other-keys)
