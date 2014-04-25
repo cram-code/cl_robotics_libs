@@ -32,13 +32,25 @@
 ;;; P-CONTROLLER
 ;;;
 
-(defclass p-controller ()
+(defclass p-controller (controller)
   ((p-gain :initform 0.0 :initarg :p-gain :accessor p-gain :type number))
   (:documentation "A simple p-controller."))
 
+(defclass p-controller-configuration (controller-configuration) ()
+  (:documentation "Configuration for a simple p-controller."))
+
+(defmethod make-controller ((configuration p-controller-configuration))
+  "Creates and returns a new P-controller from `configuration'."
+  (multiple-value-bind (p-gain p-gain-p) (gethash :p-gain configuration)
+    (if p-gain-p
+        (make-instance 'p-controller :p-gain p-gain)
+        (error "Could not find 'p-gain' in configuration: ~a~%" configuration))))
+
+;;; TODO(Georg): consider dropping this
 (defun make-p-controller (p-gain)
   (make-instance 'p-controller :p-gain p-gain))
 
+;;; TODO(Georg): consider dropping this
 (defun copy-p-controller (p-controller &key p-gain)
   (with-slots ((old-p-gain p-gain)) p-controller
     (make-p-controller (or p-gain old-p-gain))))
