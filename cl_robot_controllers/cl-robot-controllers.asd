@@ -35,12 +35,5 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "hash-table-utils" :depends-on ("package"))
      (:file "controller-interface" :depends-on ("package"))
-     (:file "hashed-controller-configuration" 
-      :depends-on ("package" "controller-interface" "hash-table-utils"))
-     (:file "pid" 
-      :depends-on ("controller-interface" 
-                   "package" 
-                   "hash-table-utils"
-                   "hashed-controller-configuration"))))))
+     (:file "pid" :depends-on ("package" "controller-interface"))))))

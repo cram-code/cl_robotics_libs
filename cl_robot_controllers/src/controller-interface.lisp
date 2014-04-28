@@ -31,13 +31,6 @@
 (defclass controller () ()
   (:documentation "Non-functional default controller."))
 
-(defclass controller-configuration () ()
-  (:documentation "Non-functional default controller configuration."))
-
-(defgeneric make-controller (configuration controller-type)
-  (:documentation "Method to create controllers from their `configuration',
- optionally using `controller-type' as a hint for dispatch."))
-
 ;;; TODO(Georg): consider turning keys into &rest and using destructuring-bind
 (defgeneric compute-command (controller &key &allow-other-keys)
   (:documentation "Computes and returns the command of `controller' for key params."))
