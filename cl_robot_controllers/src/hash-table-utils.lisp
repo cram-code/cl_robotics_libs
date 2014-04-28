@@ -26,21 +26,13 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cl-robot-controllers
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Common Lisp library for robot controllers."
-  :depends-on ()
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "hash-table-utils" :depends-on ("package"))
-     (:file "controller-interface" :depends-on ("package"))
-     (:file "hashed-controller-configuration" 
-      :depends-on ("package" "controller-interface" "hash-table-utils"))
-     (:file "pid" 
-      :depends-on ("controller-interface" 
-                   "package" 
-                   "hash-table-utils"
-                   "hashed-controller-configuration"))))))
+(in-package :robot-controllers)
+
+(defun read-hash-values (table keys)
+  (apply #'values (mapcar (lambda (key) (read-hash-value table key)) keys)))
+
+(defun read-hash-value (table key)
+  (multiple-value-bind (value value-p) (gethash key table)
+    (if value-p
+        value
+        (error "Could not look up key '~a' in table '~a'.~%" key table))))

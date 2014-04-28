@@ -26,21 +26,21 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cl-robot-controllers
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Common Lisp library for robot controllers."
-  :depends-on ()
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "hash-table-utils" :depends-on ("package"))
-     (:file "controller-interface" :depends-on ("package"))
-     (:file "hashed-controller-configuration" 
-      :depends-on ("package" "controller-interface" "hash-table-utils"))
-     (:file "pid" 
-      :depends-on ("controller-interface" 
-                   "package" 
-                   "hash-table-utils"
-                   "hashed-controller-configuration"))))))
+(in-package :robot-controllers)
+
+
+
+(defmethod make-controller ((configuration hashed-controller-configuration))
+  (multiple-value-bind (type type-p) (gethash :type (content configuration))
+    (if type-p
+        (make-controller type configuration)
+        (error "No hash-key 'type' in hashed-controller-configuration: ~a~%"
+               configuration)))
+  
+(defmethod make-controller ((configuration p-controller-configuration))
+  "Creates and returns a new P-controller from `configuration'."
+  (multiple-value-bind (p-gain p-gain-p) (gethash :p-gain (hashed-content configuration))
+    (if p-gain-p
+        (make-instance 'p-controller :p-gain p-gain)
+        (error "Could not find 'p-gain' in configuration: ~a~%" configuration))))
+  

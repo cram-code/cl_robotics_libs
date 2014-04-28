@@ -26,21 +26,39 @@
 ;;; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;; POSSIBILITY OF SUCH DAMAGE.
 
-(defsystem cl-robot-controllers
-  :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
-  :license "BSD"
-  :description "Common Lisp library for robot controllers."
-  :depends-on ()
-  :components
-  ((:module "src"
-    :components
-    ((:file "package")
-     (:file "hash-table-utils" :depends-on ("package"))
-     (:file "controller-interface" :depends-on ("package"))
-     (:file "hashed-controller-configuration" 
-      :depends-on ("package" "controller-interface" "hash-table-utils"))
-     (:file "pid" 
-      :depends-on ("controller-interface" 
-                   "package" 
-                   "hash-table-utils"
-                   "hashed-controller-configuration"))))))
+(in-package :robot-controllers)
+
+;;;
+;;; GENERIC SETUP OF HASHED CONTROLLER CONFIGURATIONS
+;;;
+;;; The idea is to provide a configuration with a hash-table inside
+;;; which fully specifies which controller to create and with which
+;;; values to fill it. My intention is to instantiate controllers at
+;;; runtime from data without a need to directly depending on the lib.
+;;;
+;;; EXAMPLE: P-CONTROLLER
+;;;   Hash-table in slot 'content' is expected to have the following
+;;;   key-value pairs:
+;;;     :controller-name --> "P-CONTROLLER"
+;;;     :package-name --> "CL-ROBOT-CONTROLLERS"
+;;;     :p-gain --> 2.5
+;;;
+;;;   Calling make-controller with such a configuration `config'
+;;;   and specifying that the controller-type is :unknown:
+;;;     CL-USER > (make-controller config :unknown)
+;;;     CL-USER > #<P-CONTROLLER {...}>
+;;;   
+
+(defclass hashed-controller-configuration (controller-configuration) 
+  ((content :initform (make-hash-table :test 'equal) :initarg :content
+            :accessor content :type hash-table
+            :documentation "Hashed content of this configuration."))
+  (:documentation "Hashed-controller-configuration for prototyping."))
+
+(defmethod make-controller ((configuration hashed-controller-configuration) 
+                            (controller-type (eql :UNKNOWN)))
+    "Default implementation trying to look up controller type from configuration."
+    (declare (ignore controller-type))
+    (multiple-value-bind (controller-name package-name)
+        (read-hash-values (content configuration) (list :controller-name :package-name))
+      (make-controller configuration (intern controller-name package-name))))

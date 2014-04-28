@@ -36,24 +36,17 @@
   ((p-gain :initform 0.0 :initarg :p-gain :accessor p-gain :type number))
   (:documentation "A simple p-controller."))
 
-(defclass p-controller-configuration (controller-configuration) ()
-  (:documentation "Configuration for a simple p-controller."))
-
-(defmethod make-controller ((configuration p-controller-configuration))
-  "Creates and returns a new P-controller from `configuration'."
-  (multiple-value-bind (p-gain p-gain-p) (gethash :p-gain configuration)
-    (if p-gain-p
-        (make-instance 'p-controller :p-gain p-gain)
-        (error "Could not find 'p-gain' in configuration: ~a~%" configuration))))
-
-;;; TODO(Georg): consider dropping this
 (defun make-p-controller (p-gain)
   (make-instance 'p-controller :p-gain p-gain))
 
-;;; TODO(Georg): consider dropping this
 (defun copy-p-controller (p-controller &key p-gain)
   (with-slots ((old-p-gain p-gain)) p-controller
     (make-p-controller (or p-gain old-p-gain))))
+
+(defmethod make-controller ((configuration hashed-controller-configuration)
+                            (controller-type (eql 'p-controller)))
+  (declare (ignore controller-type))
+  (make-p-controller (read-hash-value (content configuration) :p-gain)))
 
 (defmethod compute-command ((controller p-controller) &key error &allow-other-keys)
   (* error (p-gain controller)))
@@ -80,6 +73,13 @@
     (make-i-controller (or i-gain old-i-gain) (or i-max old-i-max) (or i-min old-i-min)
                        (or integrated-error old-integrated-error))))
 
+(defmethod make-controller ((configuration hashed-controller-configuration)
+                            (controller-type (eql 'i-controller)))
+  (declare (ignore controller-type))
+  (multiple-value-bind (i-gain i-max i-min) 
+      (read-hash-values (content configuration) (list :i-gain :i-max :i-min))
+    (make-i-controller i-gain i-max i-min)))
+
 (defmethod compute-command ((controller i-controller) &key error dt &allow-other-keys)
   (flet ((limit-value (current-value minimum-value maximum-value)
            (max minimum-value (min current-value maximum-value))))
@@ -101,12 +101,18 @@
                :type number :documentation "For internal use."))
   (:documentation "A simple d-controller."))
 
+
 (defun make-d-controller (d-gain &optional (last-error 0))
   (make-instance 'd-controller :d-gain d-gain :last-error last-error))
 
 (defun copy-d-controller (d-controller &key d-gain last-error)
   (with-slots ((old-d-gain d-gain) (old-last-error last-error)) d-controller
     (make-d-controller (or d-gain old-d-gain) (or last-error old-last-error))))
+
+(defmethod make-controller ((configuration hashed-controller-configuration)
+                            (controller-type (eql 'd-controller)))
+  (declare (ignore controller-type))
+  (make-d-controller (read-hash-value (content configuration) :d-gain)))
 
 (defmethod compute-command ((controller d-controller) &key error dt &allow-other-keys)
   (with-slots (d-gain last-error) controller
