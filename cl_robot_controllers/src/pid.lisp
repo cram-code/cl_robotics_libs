@@ -32,7 +32,7 @@
 ;;; P-CONTROLLER
 ;;;
 
-(defclass p-controller (controller)
+(defclass p-controller ()
   ((p-gain :initform 0.0 :initarg :p-gain :accessor p-gain :type number))
   (:documentation "A simple p-controller."))
 

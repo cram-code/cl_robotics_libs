@@ -28,9 +28,6 @@
 
 (in-package :robot-controllers)
 
-(defclass controller () ()
-  (:documentation "Non-functional default controller."))
-
 ;;; TODO(Georg): consider turning keys into &rest and using destructuring-bind
 (defgeneric compute-command (controller &key &allow-other-keys)
   (:documentation "Computes and returns the command of `controller' for key params."))
