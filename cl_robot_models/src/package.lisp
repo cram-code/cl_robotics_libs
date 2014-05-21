@@ -34,7 +34,8 @@
   (:export
    ;; joint-state
    joint-state joint-name joint-position joint-velocity joint-acceleration joint-effort
-   make-joint-state
+   equal-joint-state-semantics-p calculate-position-delta calculate-velocity-delta
+   calculate-acceleration-delta calculate-effort-delta calculate-state-delta
    ;; robot-state
    robot-state robot-name robot-model joint-states get-joint-state set-joint-state
    remove-joint-state robot-state-error make-robot-state))

@@ -41,10 +41,38 @@
            :documentation "Effort of the robot joint."))
   (:documentation "Representation of the state of a single robot joint."))
 
-(defun make-joint-state (&key joint-name joint-position joint-velocity
-                           joint-acceleration joint-effort)
-  (declare (type string joint-name))
-  (make-instance 
+(declaim (inline equal-joint-state-semantics-p))
+(defun equal-joint-state-semantics-p (state-a state-b)
+  (declare (type joint-state state-a state-b))
+  (string= (joint-name state-a) (joint-name state-b)))
+
+(defun calculate-position-delta (current-state desired-state)
+  (declare (type joint-state current-state desired-state))
+  (assert (equal-joint-state-semantics-p current-state desired-state))
+  (- (joint-position desired-state) (joint-position current-state)))
+
+(defun calculate-velocity-delta (current-state desired-state)
+  (declare (type joint-state current-state desired-state))
+  (assert (equal-joint-state-semantics-p current-state desired-state))
+  (- (joint-velocity desired-state) (joint-velocity current-state)))
+
+(defun calculate-acceleration-delta (current-state desired-state)
+  (declare (type joint-state current-state desired-state))
+  (assert (equal-joint-state-semantics-p current-state desired-state))
+  (- (joint-acceleration desired-state) (joint-acceleration current-state)))
+
+(defun calculate-effort-delta (current-state desired-state)
+  (declare (type joint-state current-state desired-state))
+  (assert (equal-joint-state-semantics-p current-state desired-state))
+  (- (joint-effort desired-state) (joint-effort current-state)))
+
+(defun calculate-state-delta (current-state desired-state)
+  (declare (type joint-state current-state desired-state))
+  (assert (equal-joint-state-semantics-p current-state desired-state))
+  (make-instance
    'joint-state
-   :joint-name joint-name :joint-position joint-position :joint-velocity joint-velocity
-   :joint-acceleration joint-acceleration :joint-effort joint-effort))
+   :joint-name (joint-name current-state)
+   :joint-position (calculate-position-delta current-state desired-state)
+   :joint-velocity (calculate-velocity-delta current-state desired-state)
+   :joint-acceleration (calculate-acceleration-delta current-state desired-state)
+   :joint-effort (calculate-effort-delta current-state desired-state)))
