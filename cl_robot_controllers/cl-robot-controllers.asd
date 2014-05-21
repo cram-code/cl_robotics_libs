@@ -36,4 +36,5 @@
     :components
     ((:file "package")
      (:file "controller-interface" :depends-on ("package"))
-     (:file "pid" :depends-on ("package" "controller-interface"))))))
+     (:file "pid" :depends-on ("package" "controller-interface"))
+     (:file "angles" :depends-on ("package"))))))
