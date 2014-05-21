@@ -28,6 +28,6 @@
 
 (in-package :robot-controllers)
 
-;;; TODO(Georg): consider turning keys into &rest and using destructuring-bind
-(defgeneric compute-command (controller &key &allow-other-keys)
-  (:documentation "Computes and returns the command of `controller' for key params."))
+(defgeneric compute-command (controller current-state desired-state)
+  (:documentation "Returns the command of `controller' to move from `current-state'
+ to `desired-state'."))

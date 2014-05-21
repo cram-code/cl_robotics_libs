@@ -35,15 +35,15 @@
    ;; CONTROLLER-INTERFACE
    compute-command
    ;; P-CONTROLLER
-   p-controller p-gain make-p-controller copy-p-controller error
+   p-controller p-gain copy-p-controller compute-p-control
    ;; I-CONTROLLER
-   i-controller i-gain i-max i-min integrated-error make-i-controller
-   copy-i-controller dt
+   i-controller i-gain i-max i-min dt integrated-error copy-i-controller
+   compute-i-control
    ;; D-CONTROLLER
-   d-controller d-gain last-error make-d-controller copy-d-controller
+   d-controller d-gain copy-d-controller compute-d-control
    ;; PD-CONTROLLER
-   pd-controller make-pd-controller copy-pd
+   pd-controller copy-pd-controller compute-pd-control
    ;; PI-CONTROLLER
-   pid-controller make-pid-controller copy-pid-controller
+   pi-controller copy-pi-controller compute-pi-control
    ;; PID-CONTROLLER
-   pid-controller make-pid-controller copy-pid-controller))
+   pid-controller copy-pid-controller compute-pid-controller))

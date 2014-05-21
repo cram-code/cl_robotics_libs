@@ -30,11 +30,12 @@
   :author "Georg Bartels <georg.bartels@cs.uni-bremen.de>"
   :license "BSD"
   :description "Common Lisp library for robot controllers."
-  :depends-on ()
+  :depends-on (alexandria cl-robot-models)
   :components
   ((:module "src"
     :components
     ((:file "package")
      (:file "controller-interface" :depends-on ("package"))
-     (:file "pid" :depends-on ("package" "controller-interface"))
+     (:file "pid" :depends-on ("package"))
+     (:file "pid-joint-state-interface" :depends-on ("package" "pid" "controller-interface"))
      (:file "angles" :depends-on ("package"))))))

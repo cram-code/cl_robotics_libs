@@ -36,16 +36,14 @@
   ((p-gain :initform 0.0 :initarg :p-gain :accessor p-gain :type number))
   (:documentation "A simple p-controller."))
 
-(defun make-p-controller (p-gain)
-  (make-instance 'p-controller :p-gain p-gain))
-
 (defun copy-p-controller (p-controller &key p-gain)
   (with-slots ((old-p-gain p-gain)) p-controller
-    (make-p-controller (or p-gain old-p-gain))))
+    (make-instance 'p-controller :p-gain (or p-gain old-p-gain))))
 
-(defmethod compute-command ((controller p-controller) &key error &allow-other-keys)
-  (* error (p-gain controller)))
-
+(declaim (inline compute-p-control))
+(defun compute-p-control (p-controller error)
+  (* (p-gain p-controller) error))
+  
 ;;;
 ;;; I-CONTROLLER
 ;;;
@@ -54,56 +52,122 @@
   ((i-gain :initform 0.0 :initarg :i-gain :accessor i-gain :type number)
    (i-max :initform 0.0 :initarg :i-max :accessor i-max :type number)
    (i-min :initform 0.0 :initarg :i-min :accessor i-min :type number)
+   (dt :initform 0.0 :initarg :dt :accessor dt :type number)
    (integrated-error :initform 0.0 :initarg :integrated-error :accessor integrated-error
                      :type number :documentation "For internal use."))
   (:documentation "A simple i-controller."))
 
-(defun make-i-controller (i-gain i-max i-min &optional (integrated-error 0))
-  (make-instance 'i-controller :i-gain i-gain :i-max i-max :i-min i-min 
-                               :integrated-error integrated-error))
-
-(defun copy-i-controller (i-controller &key i-gain i-max i-min integrated-error)
-  (with-slots ((old-i-gain i-gain) (old-i-max i-max) (old-i-min i-min)
+(defun copy-i-controller (i-controller &key i-gain i-max i-min dt integrated-error)
+  (with-slots ((old-i-gain i-gain) (old-i-max i-max) (old-i-min i-min) (old-dt dt)
                (old-integrated-error integrated-error)) i-controller
-    (make-i-controller (or i-gain old-i-gain) (or i-max old-i-max) (or i-min old-i-min)
-                       (or integrated-error old-integrated-error))))
+    (make-instance 'i-controller
+                   :i-gain (or i-gain old-i-gain) :i-max (or i-max old-i-max) 
+                   :i-min (or i-min old-i-min) :dt (or dt old-dt)
+                   :integrated-error (or integrated-error old-integrated-error))))
 
-(defmethod compute-command ((controller i-controller) &key error dt &allow-other-keys)
-  (flet ((limit-value (current-value minimum-value maximum-value)
-           (max minimum-value (min current-value maximum-value))))
-    (with-slots (i-gain i-min i-max integrated-error) controller
-      (when (>= 0.0 dt)
-        (error "dt provided to i-controller not greater than 0.0"))
-      (when (> i-min i-max)
-        (error "i-min bigger than i-max during control of i-controller."))
-      (setf integrated-error 
-            (limit-value (+ integrated-error (* i-gain error dt)) i-min i-max)))))
+(declaim (inline compute-i-control))
+(defun compute-i-control (i-controller error)
+  (with-slots (i-gain i-min i-max dt integrated-error) i-controller
+    (when (>= 0.0 dt)
+      (error "dt provided to i-controller not greater than 0.0"))
+    (when (> i-min i-max)
+      (error "i-min bigger than i-max during control of i-controller."))
+    (setf integrated-error 
+          (alexandria:clamp (+ integrated-error (* i-gain error dt)) i-min i-max))))
 
 ;;;
 ;;; D-CONTROLLER
 ;;;
 
 (defclass d-controller ()
-  ((d-gain :initform 0.0 :initarg :d-gain :accessor d-gain :type number)
-   (last-error :initform 0.0 :initarg :last-error :accessor last-error
-               :type number :documentation "For internal use."))
+  ((d-gain :initform 0.0 :initarg :d-gain :accessor d-gain :type number))
   (:documentation "A simple d-controller."))
 
+(defun copy-d-controller (d-controller &key d-gain)
+  (with-slots ((old-d-gain d-gain)) d-controller
+    (make-instance 'd-controller :d-gain (or d-gain old-d-gain))))
 
-(defun make-d-controller (d-gain &optional (last-error 0))
-  (make-instance 'd-controller :d-gain d-gain :last-error last-error))
+(declaim (inline compute-d-control))
+(defun compute-d-control (d-controller error-dot)
+  (* (d-gain d-controller) error-dot))
 
-(defun copy-d-controller (d-controller &key d-gain last-error)
-  (with-slots ((old-d-gain d-gain) (old-last-error last-error)) d-controller
-    (make-d-controller (or d-gain old-d-gain) (or last-error old-last-error))))
+;;;
+;;; PD-CONTROLLER
+;;;
 
-(defmethod compute-command ((controller d-controller) &key error dt &allow-other-keys)
-  (with-slots (d-gain last-error) controller
-    (when (>= 0.0 dt)
-      (error "dt provided to d-controller not greater than 0.0"))
-    (let ((command (* d-gain (/ (- error last-error) dt))))
-      (setf last-error error)
-      command)))
+(defclass pd-controller ()
+  ((p-controller :initarg p-controller :accessor p-controller :type p-controller)
+   (d-controller :initarg d-controller :accessor d-controller :type d-controller))
+  (:documentation "A simple proportional/derivative controller."))
+
+(defun copy-pd-controller (pd-controller &key p-controller d-controller)
+  (declare (type pd-controller pd-controller))
+  (with-slots ((old-p-controller p-controller) (old-d-controller d-controller))
+      pd-controller
+    (make-instance 
+     'pd-controller
+     :p-controller (or p-controller old-p-controller)
+     :d-controller (or d-controller old-d-controller))))
+
+(defun compute-pd-control (pd-controller error error-dot)
+  (declare (type pd-controller pd-controller))
+  (with-slots (p-controller d-controller) pd-controller
+    (+ (compute-p-control p-controller error) 
+       (compute-d-control d-controller error-dot))))
+
+;;;
+;;; PI-CONTROLLER
+;;;
+
+(defclass pi-controller ()
+  ((p-controller :initarg p-controller :accessor p-controller :type p-controller)
+   (i-controller :initarg i-controller :accessor i-controller :type i-controller))
+  (:documentation "A simple proportional/integral controller."))
+
+(defun copy-pi-controller (pi-controller &key p-controller i-controller)
+  (declare (type pi-controller pi-controller))
+  (with-slots ((old-p-controller p-controller) (old-i-controller i-controller))
+      pi-controller
+    (make-instance 
+     'pi-controller
+     :p-controller (or p-controller old-p-controller)
+     :i-controller (or i-controller old-i-controller))))
+
+(defun compute-pi-control (pi-controller error)
+  (declare (type pi-controller pi-controller))
+  (with-slots (p-controller i-controller) pi-controller
+    (+ (compute-p-control p-controller error) 
+       (compute-i-control i-controller error))))
+
+;;;
+;;; PID-CONTROLLER
+;;;
+
+(defclass pid-controller ()
+  ((p-controller :initarg p-controller :accessor p-controller :type p-controller)
+   (i-controller :initarg i-controller :accessor i-controller :type i-controller)
+   (d-controller :initarg d-controller :accessor d-controller :type d-controller))
+  (:documentation "A simple proportional/integral/derivative controller."))
+
+(defun copy-pid-controller (pid-controller &key p-controller i-controller d-controller)
+  (declare (type pid-controller pid-controller))
+  (with-slots ((old-p-controller p-controller) (old-i-controller i-controller)
+               (old-d-controller d-controller)) pid-controller
+    (make-instance 
+     'pid-controller
+     :p-controller (or p-controller old-p-controller)
+     :i-controller (or i-controller old-i-controller)
+     :d-controller (or d-controller old-d-controller))))
+
+(defun compute-pid-control (pid-controller error error-dot)
+  (declare (type pid-controller pid-controller))
+  (with-slots (p-controller i-controller d-controller) pid-controller
+    (+ (compute-p-control p-controller error) 
+       (compute-i-control i-controller error)
+       (compute-d-control d-controller error-dot))))
+
+;;; TODO(Georg): consider reviving the below macro once the interface of the p/i/d
+;;;              classes has stabilized
 
 ;;;
 ;;; MACRO TO WRITE COMPOUND CONTROLLERS
@@ -140,104 +204,104 @@
 ;;;        (compute-command d-controller :error error :dt dt))))
 ;;;
 
-(defmacro def-compound-controller (p-controller-p i-controller-p d-controller-p)
-;;; TODO(Georg): consider rewriting the function and method definitions by
-;;;              introspection of the type. After all, it should already be
-;;;              written and compiled after the first line of the macro, right?
-  (declare (type boolean p-controller-p i-controller-p d-controller-p))
-  (let ((configuration-list (list p-controller-p i-controller-p d-controller-p)))
-    ;; make sure that at least two of the controller types are present
-    (if (>= 1 (reduce #'+ configuration-list :key (lambda (elem) (if elem 1 0))))
-        (warn "DEF-COMPOUND-CONTROLLER with less than 2 controllers: p: ~a, i: ~a, d: ~d."
-              p-controller-p i-controller-p d-controller-p)
-        (labels ((name-prefix (p i d)
-                   (concatenate 'string (when p "P") (when i "I") (when d "D")))
-                 (to-symbol (name) (intern (string-upcase name)))
-                 (to-keyword (name) (intern (string-upcase name) "KEYWORD"))
-                 (controller-name (prefix)
-                   (concatenate 'string prefix "-controller"))
-                 (controller-symbol (prefix)
-                   (to-symbol (controller-name prefix)))
-                 (slot-name (pre) (concatenate 'string (string pre) "-controller"))
-                 (slot-names (prefix) (map 'list #'slot-name prefix))
-                 (slot-symbols (prefix) (mapcar #'to-symbol (slot-names prefix)))
-                 (slot-keywords (prefix) (mapcar #'to-keyword (slot-names prefix)))
-                 ;; CLASS DEFINITION STUFF
-                 (controller-slot-specifier (prefix)
-                   (mapcar (lambda (slot-symbol slot-keyword)
-                             `(,slot-symbol :initform (make-instance ',slot-symbol)
-                                            :initarg ,slot-keyword
-                                            :accessor ,slot-symbol
-                                            :type ,slot-symbol))
-                           (slot-symbols prefix) (slot-keywords prefix)))
-                 (controller-doc-string (prefix)
-                   (concatenate 'string "A simple compound " (controller-name prefix) "."))
-                 (controller-class-definition (prefix)
-                   `(defclass ,(controller-symbol prefix) () 
-                      ,(controller-slot-specifier prefix)
-                      (:documentation ,(controller-doc-string prefix))))
-                 ;; CONSTRUCTOR STUFF
-                 (constructor-name (prefix)
-                   (concatenate 'string "make-" (controller-name prefix)))
-                 (constructor-symbol (prefix)
-                   (to-symbol (constructor-name prefix)))
-                 (constructor-body (prefix)
-                   `(make-instance
-                     ',(controller-symbol prefix)
-                     ,@(apply #'append 
-                              (mapcar (lambda (slot-keyword slot-symbol)
-                                        `(,slot-keyword ,slot-symbol))
-                                      (slot-keywords prefix) (slot-symbols prefix)))))
-                 (controller-constructor (prefix)
-                   `(defun ,(constructor-symbol prefix)
-                        ,(slot-symbols prefix)
-                      ,(constructor-body prefix)))
-                 ;; COPY CONSTRUCTOR STUFF
-                 (aux-slot-name (prefix) 
-                   (concatenate 'string "old-" (string prefix) "-controller"))
-                 (aux-slot-names (prefix) (map 'list #'aux-slot-name prefix))
-                 (aux-slot-symbols (prefix) (mapcar #'to-symbol (aux-slot-names prefix)))
-                 (copier-name (prefix) 
-                   (concatenate 'string "copy-" (controller-name prefix)))
-                 (copier-symbol (prefix) (to-symbol (copier-name prefix)))
-                 (copier-lambda (prefix)
-                   `(,(controller-symbol prefix) &key ,@(slot-symbols prefix)))
-                 (copier-body (prefix)
-                   `(with-slots 
-                          ,(mapcar (lambda (slot-symbol aux-slot-symbol)
-                                     `(,aux-slot-symbol ,slot-symbol))
-                            (slot-symbols prefix) (aux-slot-symbols prefix))
-                        ,(controller-symbol prefix)
-                      (,(constructor-symbol prefix)
-                       ,@(mapcar (lambda (slot-symbol aux-slot-symbol)
-                                   `(or ,slot-symbol ,aux-slot-symbol))
-                                 (slot-symbols prefix) (aux-slot-symbols prefix)))))
-                 (controller-copier (prefix)
-                   `(defun ,(copier-symbol prefix) ,(copier-lambda prefix)
-                      ,(copier-body prefix)))
-                 ;; COMPUTE-COMMAND STUFF
-                 (computation-body (prefix) 
-                   `(with-slots ,(slot-symbols prefix) ,(controller-symbol prefix)
-                      (+ ,@(mapcar (lambda (slot-symbol)
-                                     `(compute-command ,slot-symbol :error error :dt dt))
-                                   (slot-symbols prefix)))))
-                 (controller-computation (prefix)
-                   `(defmethod compute-command 
-                        (,(controller-symbol prefix) &key error dt &allow-other-keys)
-                      ,(computation-body prefix))))
-          ;; ACTUAL MACRO
-          `(progn
-             ,(controller-class-definition 
-               (name-prefix p-controller-p i-controller-p d-controller-p))
+;; (defmacro def-compound-controller (p-controller-p i-controller-p d-controller-p)
+;; ;;; TODO(Georg): consider rewriting the function and method definitions by
+;; ;;;              introspection of the type. After all, it should already be
+;; ;;;              written and compiled after the first line of the macro, right?
+;;   (declare (type boolean p-controller-p i-controller-p d-controller-p))
+;;   (let ((configuration-list (list p-controller-p i-controller-p d-controller-p)))
+;;     ;; make sure that at least two of the controller types are present
+;;     (if (>= 1 (reduce #'+ configuration-list :key (lambda (elem) (if elem 1 0))))
+;;         (warn "DEF-COMPOUND-CONTROLLER with less than 2 controllers: p: ~a, i: ~a, d: ~d."
+;;               p-controller-p i-controller-p d-controller-p)
+;;         (labels ((name-prefix (p i d)
+;;                    (concatenate 'string (when p "P") (when i "I") (when d "D")))
+;;                  (to-symbol (name) (intern (string-upcase name)))
+;;                  (to-keyword (name) (intern (string-upcase name) "KEYWORD"))
+;;                  (controller-name (prefix)
+;;                    (concatenate 'string prefix "-controller"))
+;;                  (controller-symbol (prefix)
+;;                    (to-symbol (controller-name prefix)))
+;;                  (slot-name (pre) (concatenate 'string (string pre) "-controller"))
+;;                  (slot-names (prefix) (map 'list #'slot-name prefix))
+;;                  (slot-symbols (prefix) (mapcar #'to-symbol (slot-names prefix)))
+;;                  (slot-keywords (prefix) (mapcar #'to-keyword (slot-names prefix)))
+;;                  ;; CLASS DEFINITION STUFF
+;;                  (controller-slot-specifier (prefix)
+;;                    (mapcar (lambda (slot-symbol slot-keyword)
+;;                              `(,slot-symbol :initform (make-instance ',slot-symbol)
+;;                                             :initarg ,slot-keyword
+;;                                             :accessor ,slot-symbol
+;;                                             :type ,slot-symbol))
+;;                            (slot-symbols prefix) (slot-keywords prefix)))
+;;                  (controller-doc-string (prefix)
+;;                    (concatenate 'string "A simple compound " (controller-name prefix) "."))
+;;                  (controller-class-definition (prefix)
+;;                    `(defclass ,(controller-symbol prefix) () 
+;;                       ,(controller-slot-specifier prefix)
+;;                       (:documentation ,(controller-doc-string prefix))))
+;;                  ;; CONSTRUCTOR STUFF
+;;                  (constructor-name (prefix)
+;;                    (concatenate 'string "make-" (controller-name prefix)))
+;;                  (constructor-symbol (prefix)
+;;                    (to-symbol (constructor-name prefix)))
+;;                  (constructor-body (prefix)
+;;                    `(make-instance
+;;                      ',(controller-symbol prefix)
+;;                      ,@(apply #'append 
+;;                               (mapcar (lambda (slot-keyword slot-symbol)
+;;                                         `(,slot-keyword ,slot-symbol))
+;;                                       (slot-keywords prefix) (slot-symbols prefix)))))
+;;                  (controller-constructor (prefix)
+;;                    `(defun ,(constructor-symbol prefix)
+;;                         ,(slot-symbols prefix)
+;;                       ,(constructor-body prefix)))
+;;                  ;; COPY CONSTRUCTOR STUFF
+;;                  (aux-slot-name (prefix) 
+;;                    (concatenate 'string "old-" (string prefix) "-controller"))
+;;                  (aux-slot-names (prefix) (map 'list #'aux-slot-name prefix))
+;;                  (aux-slot-symbols (prefix) (mapcar #'to-symbol (aux-slot-names prefix)))
+;;                  (copier-name (prefix) 
+;;                    (concatenate 'string "copy-" (controller-name prefix)))
+;;                  (copier-symbol (prefix) (to-symbol (copier-name prefix)))
+;;                  (copier-lambda (prefix)
+;;                    `(,(controller-symbol prefix) &key ,@(slot-symbols prefix)))
+;;                  (copier-body (prefix)
+;;                    `(with-slots 
+;;                           ,(mapcar (lambda (slot-symbol aux-slot-symbol)
+;;                                      `(,aux-slot-symbol ,slot-symbol))
+;;                             (slot-symbols prefix) (aux-slot-symbols prefix))
+;;                         ,(controller-symbol prefix)
+;;                       (,(constructor-symbol prefix)
+;;                        ,@(mapcar (lambda (slot-symbol aux-slot-symbol)
+;;                                    `(or ,slot-symbol ,aux-slot-symbol))
+;;                                  (slot-symbols prefix) (aux-slot-symbols prefix)))))
+;;                  (controller-copier (prefix)
+;;                    `(defun ,(copier-symbol prefix) ,(copier-lambda prefix)
+;;                       ,(copier-body prefix)))
+;;                  ;; COMPUTE-COMMAND STUFF
+;;                  (computation-body (prefix) 
+;;                    `(with-slots ,(slot-symbols prefix) ,(controller-symbol prefix)
+;;                       (+ ,@(mapcar (lambda (slot-symbol)
+;;                                      `(compute-command ,slot-symbol :error error :dt dt))
+;;                                    (slot-symbols prefix)))))
+;;                  (controller-computation (prefix)
+;;                    `(defmethod compute-command 
+;;                         (,(controller-symbol prefix) &key error dt &allow-other-keys)
+;;                       ,(computation-body prefix))))
+;;           ;; ACTUAL MACRO
+;;           `(progn
+;;              ,(controller-class-definition 
+;;                (name-prefix p-controller-p i-controller-p d-controller-p))
 
-             ,(controller-constructor
-               (name-prefix p-controller-p i-controller-p d-controller-p))
+;;              ,(controller-constructor
+;;                (name-prefix p-controller-p i-controller-p d-controller-p))
 
-             ,(controller-copier
-               (name-prefix p-controller-p i-controller-p d-controller-p))
+;;              ,(controller-copier
+;;                (name-prefix p-controller-p i-controller-p d-controller-p))
 
-             ,(controller-computation
-               (name-prefix p-controller-p i-controller-p d-controller-p)))))))
+;;              ,(controller-computation
+;;                (name-prefix p-controller-p i-controller-p d-controller-p)))))))
              
 
 ;;;
@@ -245,10 +309,10 @@
 ;;;
 
 ;; PI-CONTROLLER
-(def-compound-controller t t nil)
+; (def-compound-controller t t nil)
 
 ;; PD-CONTROLLER
-(def-compound-controller t nil t)
+; (def-compound-controller t nil t)
 
 ;; PID-CONTROLLER
-(def-compound-controller t t t)
+; (def-compound-controller t t t)
