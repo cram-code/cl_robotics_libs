@@ -28,43 +28,30 @@
 
 (in-package :robot-controllers)
 
-(defmethod compute-command ((controller p-controller)
-                            (current-state cl-robot-models:joint-state)
-                            (desired-state cl-robot-models:joint-state))
-  (compute-p-control 
-   controller (cl-robot-models:calculate-position-delta current-state desired-state)))
-
-(defmethod compute-command ((controller i-controller)
-                            (current-state cl-robot-models:joint-state)
-                            (desired-state cl-robot-models:joint-state))
-  (compute-i-control 
-   controller (cl-robot-models:calculate-position-delta current-state desired-state)))
-
-(defmethod compute-command ((controller d-controller)
-                            (current-state cl-robot-models:joint-state)
-                            (desired-state cl-robot-models:joint-state))
-  (compute-d-control
-   controller (cl-robot-models:calculate-velocity-delta current-state desired-state)))
-
-(defmethod compute-command ((controller pd-controller)
-                            (current-state cl-robot-models:joint-state)
-                            (desired-state cl-robot-models:joint-state))
-  (compute-pd-control
-   controller
-   (cl-robot-models:calculate-position-delta current-state desired-state)
-   (cl-robot-models:calculate-velocity-delta current-state desired-state)))
-
-(defmethod compute-command ((controller pi-controller)
-                            (current-state cl-robot-models:joint-state)
-                            (desired-state cl-robot-models:joint-state))
-  (compute-pi-control
-   controller
-   (cl-robot-models:calculate-position-delta current-state desired-state)))
-
-(defmethod compute-command ((controller pid-controller)
-                            (current-state cl-robot-models:joint-state)
-                            (desired-state cl-robot-models:joint-state))
-  (compute-pid-control
-   controller
-   (cl-robot-models:calculate-position-delta current-state desired-state)
-   (cl-robot-models:calculate-velocity-delta current-state desired-state)))
+(defun compute-command (controller current desired)
+  (flet ((get-error (current desired)
+           (cl-robot-models:calculate-position-delta
+            current desired))
+         (get-error-dot (current desired)
+           (declare (ignore desired))
+           ;; assuming: desired velocity equals 0
+           (- (cl-robot-models:joint-velocity current))))
+    (case (type-of controller)
+      (p-controller 
+       (compute-p-control controller (get-error current desired)))
+      (i-controller 
+       (compute-i-control controller (get-error current desired)))
+      (d-controller 
+       (compute-d-control controller (get-error-dot current desired)))
+      (pi-controller 
+       (compute-pi-control controller (get-error current desired)))
+      (pd-controller 
+       (compute-pd-control 
+        controller 
+        (get-error current desired)
+        (get-error-dot current desired)))
+      (pid-controller 
+       (compute-pid-control 
+        controller 
+        (get-error current desired)
+        (get-error-dot current desired))))))

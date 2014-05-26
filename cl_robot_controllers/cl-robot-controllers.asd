@@ -35,7 +35,6 @@
   ((:module "src"
     :components
     ((:file "package")
-     (:file "controller-interface" :depends-on ("package"))
      (:file "pid" :depends-on ("package"))
-     (:file "pid-joint-state-interface" :depends-on ("package" "pid" "controller-interface"))
+     (:file "pid-joint-state-interface" :depends-on ("package" "pid"))
      (:file "angles" :depends-on ("package"))))))

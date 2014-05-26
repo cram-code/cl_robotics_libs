@@ -32,18 +32,25 @@
   (:nicknames :robot-controllers)
   (:use #:common-lisp)
   (:export
-   ;; CONTROLLER-INTERFACE
+   ;; JOINT-STATE-INTERFACE OF PIDs
    compute-command
    ;; P-CONTROLLER
-   p-controller p-gain copy-p-controller compute-p-control
+   p-controller make-p-controller p-gain p-controller-p-gain copy-p-controller
+   compute-p-control
    ;; I-CONTROLLER
-   i-controller i-gain i-max i-min dt integrated-error copy-i-controller
-   compute-i-control
+   i-controller make-i-controller i-controller-i-gain i-gain i-controller-i-max i-max
+   i-controller-i-min i-min i-controller-dt dt i-controller-integrated-error 
+   integrated-error copy-i-controller compute-i-control
    ;; D-CONTROLLER
-   d-controller d-gain copy-d-controller compute-d-control
+   d-controller make-d-controller d-controller-d-gain d-gain copy-d-controller
+   compute-d-control
    ;; PD-CONTROLLER
-   pd-controller copy-pd-controller compute-pd-control
+   pd-controller make-pd-controller pd-controller-p-controller pd-controller-d-controller
+   copy-pd-controller compute-pd-control
    ;; PI-CONTROLLER
-   pi-controller copy-pi-controller compute-pi-control
+   pi-controller make-pi-controller copy-pi-controller pi-controller-p-controller 
+   pi-controller-i-controller compute-pi-control
    ;; PID-CONTROLLER
-   pid-controller copy-pid-controller compute-pid-controller))
+   pid-controller make-pid-controller copy-pid-controller 
+   pid-controller-p-controller pid-controller-i-controller pid-controller-d-controller 
+   compute-pid-control))

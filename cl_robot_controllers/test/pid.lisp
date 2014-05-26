@@ -30,101 +30,113 @@
 
 (define-test p-controller ()
   "In-depth unit-tests for p-controller."
-  (let* ((controller (make-instance 'p-controller :p-gain 1.0))
-         (controller2 (copy-p-controller controller))
-         (controller3 (copy-p-controller controller :p-gain 2.0)))
-    (assert-number-equal 1.0 (p-gain controller))
-    (assert-number-equal (p-gain controller) (p-gain controller2))
-    (assert-number-equal 2.0 (p-gain controller3))
+  (let* ((controller (make-p-controller :p-gain 1.0))
+         (controller2 (copy-p-controller controller)))
+    (assert-number-equal 1.0 (p-controller-p-gain controller))
+    (assert-number-equal (p-controller-p-gain controller) 
+                         (p-controller-p-gain controller2))
     (assert-false (eq controller controller2))
-    (assert-false (eq controller controller3))
     (assert-number-equal 1.0 (compute-p-control controller 1.0))
     (assert-number-equal 1.0 (compute-p-control controller2 1.0))
-    (assert-number-equal 1.0 (compute-p-control controller3 0.5))
-    (assert-number-equal 1.0 (p-gain controller))
-    (assert-number-equal (p-gain controller) (p-gain controller2))
-    (assert-number-equal 2.0 (p-gain controller3))))
+    (assert-number-equal 1.0 (p-controller-p-gain controller))
+    (assert-number-equal 1.0 (p-controller-p-gain controller2))))
 
 (define-test i-controller ()
   "In-depth unit-tests for i-controller."
-  (let* ((controller (make-instance 'i-controller
-                                    :i-gain 1.0 :i-max 10.0 :i-min -10.0 :dt 1.5))
+  (let* ((controller 
+           (make-i-controller :i-gain 1.0 :i-max 10.0 :i-min -10.0 :dt 1.5))
          (controller2 (copy-i-controller controller))
-         (controller3 (copy-i-controller controller :i-gain 2.0 :i-max 20.0 :i-min -20.0
-                                                    :integrated-error 2.5 :dt 1.0))
-         (controller4 (make-instance 'i-controller
-                                     :i-gain 1.0 :i-max 10.0 :i-min -10.0 
-                                     :integrated-error 1.5 :dt 1.5)))
+         (controller4 
+           (make-i-controller
+            :i-gain 1.0 :i-max 10.0 :i-min -10.0  :integrated-error 1.5 :dt 1.5)))
     ;; CHECKING CONTRUCTOR AND COPY
-    (assert-number-equal 1.0 (i-gain controller))
-    (assert-number-equal -10.0 (i-min controller))
-    (assert-number-equal 10.0 (i-max controller))
-    (assert-number-equal 0.0 (integrated-error controller))
-    (assert-number-equal 1.5 (dt controller))
+    (assert-number-equal 1.0 (i-controller-i-gain controller))
+    (assert-number-equal -10.0 (i-controller-i-min controller))
+    (assert-number-equal 10.0 (i-controller-i-max controller))
+    (assert-number-equal 0.0 (i-controller-integrated-error controller))
+    (assert-number-equal 1.5 (i-controller-dt controller))
     (assert-false (eq controller controller2))
-    (assert-number-equal 1.0 (i-gain controller2))
-    (assert-number-equal -10.0 (i-min controller2))
-    (assert-number-equal 10.0 (i-max controller2))
-    (assert-number-equal 0.0 (integrated-error controller2))
-    (assert-number-equal 1.5 (dt controller2))
-    (assert-false (eq controller controller3))
-    (assert-number-equal 2.0 (i-gain controller3))
-    (assert-number-equal -20.0 (i-min controller3))
-    (assert-number-equal 20.0 (i-max controller3))
-    (assert-number-equal 2.5 (integrated-error controller3))
-    (assert-number-equal 1.0 (dt controller3))
-    (assert-number-equal 1.0 (i-gain controller4))
-    (assert-number-equal -10.0 (i-min controller4))
-    (assert-number-equal 10.0 (i-max controller4))
-    (assert-number-equal 1.5 (integrated-error controller4))
-    (assert-number-equal 1.5 (dt controller4))
+    (with-slots (i-gain i-min i-max integrated-error dt) controller2
+      (assert-number-equal 1.0 i-gain)
+      (assert-number-equal -10.0 i-min)
+      (assert-number-equal 10.0 i-max)
+      (assert-number-equal 0.0 integrated-error)
+      (assert-number-equal 1.5 dt))
+    (with-slots (i-gain i-min i-max integrated-error dt) controller4
+      (assert-number-equal 1.0 i-gain)
+      (assert-number-equal -10.0 i-min)
+      (assert-number-equal 10.0 i-max)
+      (assert-number-equal 1.5 integrated-error)
+      (assert-number-equal 1.5 dt))
     ;; CHECKING COMPUTATION
     (assert-number-equal 1.5 (compute-i-control controller 1.0))
-    (assert-number-equal 1.5 (integrated-error controller))
+    (assert-number-equal 1.5 (i-controller-integrated-error controller))
     (assert-number-equal 3 (compute-i-control controller 1.0))
-    (assert-number-equal 3 (integrated-error controller))
+    (assert-number-equal 3 (i-controller-integrated-error controller))
     (assert-number-equal 10.0 (compute-i-control controller 10.0))
-    (assert-number-equal 10.0 (integrated-error controller))
+    (assert-number-equal 10.0 (i-controller-integrated-error controller))
     (assert-number-equal 8.5 (compute-i-control controller -1.0))
-    (assert-number-equal 8.5 (integrated-error controller))
+    (assert-number-equal 8.5 (i-controller-integrated-error controller))
     (assert-number-equal -10.0 (compute-i-control controller -15.0))
-    (assert-number-equal -10 (integrated-error controller))
+    (assert-number-equal -10 (i-controller-integrated-error controller))
     ;; CHECKING ERROR CATCHING
-    (setf (dt controller) 0.0)
+    (setf (i-controller-dt controller) 0.0)
     (assert-error 'error (compute-i-control controller -11.0))
-    (setf (dt controller) -0.1)
+    (setf (i-controller-dt controller) -0.1)
     (assert-error 'error (compute-i-control controller -11.0))
-    (setf (dt controller) 1)
-    (setf (i-min controller) (+ 1 (i-max controller)))
+    (setf (i-controller-dt controller) 1)
+    (setf (i-controller-i-min controller) (+ 1 (i-controller-i-max controller)))
     (assert-error 'error (compute-i-control controller 1.0))))
 
 (define-test d-controller ()
   "In-depth unit-tests for d-controller."
-  (let* ((controller (make-instance 'd-controller :d-gain 1.0))
-         (controller2 (copy-d-controller controller))
-         (controller3 (copy-d-controller controller :d-gain 2.0)))
+  (let* ((controller (make-d-controller :d-gain 1.0))
+         (controller2 (copy-d-controller controller)))
     ;; CHECKING CONSTRUCTOR AND COPYING
-    (assert-number-equal 1.0 (d-gain controller))
-    (assert-number-equal 1.0 (d-gain controller2))
+    (assert-number-equal 1.0 (d-controller-d-gain controller))
+    (assert-number-equal 1.0 (d-controller-d-gain controller2))
     (assert-false (eq controller controller2))
-    (assert-number-equal 2.0 (d-gain controller3))
-    (assert-false (eq controller controller3))
     ;; CHECK COMPUTATION
     (assert-number-equal 2 (compute-d-control controller 2.0))
-    (assert-number-equal 1 (d-gain controller))
+    (assert-number-equal 1 (d-controller-d-gain controller))
     (assert-number-equal 1 (compute-d-control controller 1.0))))
 
-;; (define-test pid-control ()
-;;   "Checks basic PID control behavior over two cycles."
-;;   (let* ((controller (make-pid-controller
-;;                       (make-p-controller 1.0)
-;;                       (make-i-controller 2.0 2.0 -2.0)
-;;                       (make-d-controller 3.0))))
-;;     ;; cycle 1
-;;     (assert-number-equal 93.6 (compute-command controller :error 3.0 :dt 0.1))
-;;     (assert-number-equal 3 (last-error (d-controller controller)))
-;;     (assert-number-equal 0.6 (integrated-error (i-controller controller)))
-;;     ;; cycle 2
-;;     (assert-number-equal -27.0 (compute-command controller :error 2.0 :dt 0.1))
-;;     (assert-number-equal 2 (last-error (d-controller controller)))
-;;     (assert-number-equal 1.0 (integrated-error (i-controller controller)))))
+(define-test pd-control ()
+  "Checks basic PD control behavior over two cycles."
+  (let ((controller
+          (make-pd-controller
+           :p-controller (make-p-controller :p-gain 1.0)
+           :d-controller (make-d-controller :d-gain 3.0))))
+    (assert-number-equal 93 (compute-pd-control controller 3.0 30.0))
+    (assert-number-equal -28.0 (compute-pd-control controller 2.0 -10.0))))
+
+(define-test pi-control ()
+  "Checks basic PI control behavior over two cycles."
+  (let* ((controller 
+           (make-pi-controller
+            :p-controller (make-p-controller :p-gain 1.0)
+            :i-controller (make-i-controller :i-gain 2.0 :i-max 2.0 :i-min -2.0 :dt 0.1))))
+    ;; cycle 1
+    (assert-number-equal 3.6 (compute-pi-control controller 3.0)
+    (assert-number-equal 0.6 (i-controller-integrated-error 
+                              (pi-controller-i-controller controller)))
+    ;; cycle 2
+    (assert-number-equal 3.0 (compute-pi-control controller 2.0))
+    (assert-number-equal 1.0 (i-controller-integrated-error
+                              (pi-controller-i-controller controller))))))
+
+(define-test pid-control ()
+  "Checks basic PID control behavior over two cycles."
+  (let* ((controller 
+           (make-pid-controller
+            :p-controller (make-p-controller :p-gain 1.0)
+            :i-controller (make-i-controller :i-gain 2.0 :i-max 2.0 :i-min -2.0 :dt 0.1)
+            :d-controller (make-d-controller :d-gain 3.0))))
+    ;; cycle 1
+    (assert-number-equal 93.6 (compute-pid-control controller 3.0 30.0))
+    (assert-number-equal 0.6 (i-controller-integrated-error 
+                              (pid-controller-i-controller controller)))
+    ;; cycle 2
+    (assert-number-equal -27.0 (compute-pid-control controller 2.0 -10.0))
+    (assert-number-equal 1.0 (i-controller-integrated-error
+                              (pid-controller-i-controller controller)))))

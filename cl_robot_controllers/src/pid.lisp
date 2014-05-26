@@ -32,41 +32,30 @@
 ;;; P-CONTROLLER
 ;;;
 
-(defclass p-controller ()
-  ((p-gain :initform 0.0 :initarg :p-gain :accessor p-gain :type number))
-  (:documentation "A simple p-controller."))
-
-(defun copy-p-controller (p-controller &key p-gain)
-  (with-slots ((old-p-gain p-gain)) p-controller
-    (make-instance 'p-controller :p-gain (or p-gain old-p-gain))))
+(defstruct p-controller
+  "A simple proportional controller."
+  (p-gain 0.0 :read-only nil :type number))
 
 (declaim (inline compute-p-control))
 (defun compute-p-control (p-controller error)
-  (* (p-gain p-controller) error))
+  (declare (type p-controller p-controller))
+  (* (p-controller-p-gain p-controller) error))
   
 ;;;
 ;;; I-CONTROLLER
 ;;;
 
-(defclass i-controller ()
-  ((i-gain :initform 0.0 :initarg :i-gain :accessor i-gain :type number)
-   (i-max :initform 0.0 :initarg :i-max :accessor i-max :type number)
-   (i-min :initform 0.0 :initarg :i-min :accessor i-min :type number)
-   (dt :initform 0.0 :initarg :dt :accessor dt :type number)
-   (integrated-error :initform 0.0 :initarg :integrated-error :accessor integrated-error
-                     :type number :documentation "For internal use."))
-  (:documentation "A simple i-controller."))
-
-(defun copy-i-controller (i-controller &key i-gain i-max i-min dt integrated-error)
-  (with-slots ((old-i-gain i-gain) (old-i-max i-max) (old-i-min i-min) (old-dt dt)
-               (old-integrated-error integrated-error)) i-controller
-    (make-instance 'i-controller
-                   :i-gain (or i-gain old-i-gain) :i-max (or i-max old-i-max) 
-                   :i-min (or i-min old-i-min) :dt (or dt old-dt)
-                   :integrated-error (or integrated-error old-integrated-error))))
+(defstruct i-controller
+  "A simple integrative controller."
+  (i-gain 0.0 :read-only nil :type number)
+  (i-max 0.0 :read-only nil :type number)
+  (i-min 0.0 :read-only nil :type number)
+  (dt 0.0 :read-only nil :type number)
+  (integrated-error 0.0 :read-only nil :type number))
 
 (declaim (inline compute-i-control))
 (defun compute-i-control (i-controller error)
+  (declare (type i-controller i-controller))
   (with-slots (i-gain i-min i-max dt integrated-error) i-controller
     (when (>= 0.0 dt)
       (error "dt provided to i-controller not greater than 0.0"))
@@ -79,35 +68,23 @@
 ;;; D-CONTROLLER
 ;;;
 
-(defclass d-controller ()
-  ((d-gain :initform 0.0 :initarg :d-gain :accessor d-gain :type number))
-  (:documentation "A simple d-controller."))
-
-(defun copy-d-controller (d-controller &key d-gain)
-  (with-slots ((old-d-gain d-gain)) d-controller
-    (make-instance 'd-controller :d-gain (or d-gain old-d-gain))))
+(defstruct d-controller
+  "A simple derivative controller."
+  (d-gain 0.0 :read-only nil :type number))
 
 (declaim (inline compute-d-control))
 (defun compute-d-control (d-controller error-dot)
-  (* (d-gain d-controller) error-dot))
+  (declare (type d-controller d-controller))
+  (* (d-controller-d-gain d-controller) error-dot))
 
 ;;;
 ;;; PD-CONTROLLER
 ;;;
 
-(defclass pd-controller ()
-  ((p-controller :initarg p-controller :accessor p-controller :type p-controller)
-   (d-controller :initarg d-controller :accessor d-controller :type d-controller))
-  (:documentation "A simple proportional/derivative controller."))
-
-(defun copy-pd-controller (pd-controller &key p-controller d-controller)
-  (declare (type pd-controller pd-controller))
-  (with-slots ((old-p-controller p-controller) (old-d-controller d-controller))
-      pd-controller
-    (make-instance 
-     'pd-controller
-     :p-controller (or p-controller old-p-controller)
-     :d-controller (or d-controller old-d-controller))))
+(defstruct pd-controller
+  "A simple proportional/derivative controller."
+  (p-controller (make-p-controller) :read-only nil :type p-controller)
+  (d-controller (make-d-controller) :read-only nil :type d-controller))
 
 (defun compute-pd-control (pd-controller error error-dot)
   (declare (type pd-controller pd-controller))
@@ -119,19 +96,10 @@
 ;;; PI-CONTROLLER
 ;;;
 
-(defclass pi-controller ()
-  ((p-controller :initarg p-controller :accessor p-controller :type p-controller)
-   (i-controller :initarg i-controller :accessor i-controller :type i-controller))
-  (:documentation "A simple proportional/integral controller."))
-
-(defun copy-pi-controller (pi-controller &key p-controller i-controller)
-  (declare (type pi-controller pi-controller))
-  (with-slots ((old-p-controller p-controller) (old-i-controller i-controller))
-      pi-controller
-    (make-instance 
-     'pi-controller
-     :p-controller (or p-controller old-p-controller)
-     :i-controller (or i-controller old-i-controller))))
+(defstruct pi-controller
+  "A simple proportional/integral controller."
+  (p-controller (make-p-controller) :read-only nil :type p-controller)
+  (i-controller (make-i-controller) :read-only nil :type i-controller))
 
 (defun compute-pi-control (pi-controller error)
   (declare (type pi-controller pi-controller))
@@ -143,21 +111,11 @@
 ;;; PID-CONTROLLER
 ;;;
 
-(defclass pid-controller ()
-  ((p-controller :initarg p-controller :accessor p-controller :type p-controller)
-   (i-controller :initarg i-controller :accessor i-controller :type i-controller)
-   (d-controller :initarg d-controller :accessor d-controller :type d-controller))
-  (:documentation "A simple proportional/integral/derivative controller."))
-
-(defun copy-pid-controller (pid-controller &key p-controller i-controller d-controller)
-  (declare (type pid-controller pid-controller))
-  (with-slots ((old-p-controller p-controller) (old-i-controller i-controller)
-               (old-d-controller d-controller)) pid-controller
-    (make-instance 
-     'pid-controller
-     :p-controller (or p-controller old-p-controller)
-     :i-controller (or i-controller old-i-controller)
-     :d-controller (or d-controller old-d-controller))))
+(defstruct pid-controller
+  "A simple proportional/integral/derivative controller."
+  (p-controller (make-p-controller) :read-only nil :type p-controller)
+  (i-controller (make-i-controller) :read-only nil :type i-controller)
+  (d-controller (make-d-controller) :read-only nil :type d-controller))
 
 (defun compute-pid-control (pid-controller error error-dot)
   (declare (type pid-controller pid-controller))
