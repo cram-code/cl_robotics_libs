@@ -33,7 +33,8 @@
   (:use #:common-lisp)
   (:export
    ;; joint-state
-   joint-state joint-name joint-position joint-velocity joint-acceleration joint-effort
+   joint-state make-joint-state copy-joint-state joint-state-p joint-name
+   joint-position joint-velocity joint-acceleration joint-effort
    equal-joint-state-semantics-p calculate-position-delta calculate-velocity-delta
    calculate-acceleration-delta calculate-effort-delta calculate-state-delta
    ;; robot-state

@@ -28,18 +28,26 @@
 
 (in-package :robot-models)
 
-(defclass joint-state ()
-  ((joint-name :initarg :joint-name :accessor joint-name
-               :documentation "ID used to identify the joint in a robot model")
-   (joint-position :initarg :joint-position :accessor joint-position
-             :documentation "Position of the robot joint.")
-   (joint-velocity :initarg :joint-velocity :accessor joint-velocity
-             :documentation "Velocity of the robot joint.")
-   (joint-acceleration :initarg :joint-acceleration :accessor joint-acceleration
-                 :documentation "Acceleration of the robot joint.")
-   (joint-effort :initarg :joint-effort :accessor joint-effort
-           :documentation "Effort of the robot joint."))
-  (:documentation "Representation of the state of a single robot joint."))
+(defstruct (joint-state (:conc-name joint-))
+  "Representation of the state of a single robot joint."
+  (name "" :type string :read-only nil)
+  (position 0.0 :type number :read-only nil)
+  (velocity 0.0 :type number :read-only nil)
+  (acceleration 0.0 :type number :read-only nil)
+  (effort 0.0 :type number :read-only nil))
+
+;; (defclass joint-state ()
+;;   ((joint-name :initarg :joint-name :accessor joint-name
+;;                :documentation "ID used to identify the joint in a robot model")
+;;    (joint-position :initarg :joint-position :accessor joint-position
+;;              :documentation "Position of the robot joint.")
+;;    (joint-velocity :initarg :joint-velocity :accessor joint-velocity
+;;              :documentation "Velocity of the robot joint.")
+;;    (joint-acceleration :initarg :joint-acceleration :accessor joint-acceleration
+;;                  :documentation "Acceleration of the robot joint.")
+;;    (joint-effort :initarg :joint-effort :accessor joint-effort
+;;            :documentation "Effort of the robot joint."))
+;;   (:documentation "Representation of the state of a single robot joint."))
 
 (declaim (inline equal-joint-state-semantics-p))
 (defun equal-joint-state-semantics-p (state-a state-b)
@@ -69,10 +77,9 @@
 (defun calculate-state-delta (current-state desired-state)
   (declare (type joint-state current-state desired-state))
   (assert (equal-joint-state-semantics-p current-state desired-state))
-  (make-instance
-   'joint-state
-   :joint-name (joint-name current-state)
-   :joint-position (calculate-position-delta current-state desired-state)
-   :joint-velocity (calculate-velocity-delta current-state desired-state)
-   :joint-acceleration (calculate-acceleration-delta current-state desired-state)
-   :joint-effort (calculate-effort-delta current-state desired-state)))
+  (make-joint-state
+   :name (joint-name current-state)
+   :position (calculate-position-delta current-state desired-state)
+   :velocity (calculate-velocity-delta current-state desired-state)
+   :acceleration (calculate-acceleration-delta current-state desired-state)
+   :effort (calculate-effort-delta current-state desired-state)))
