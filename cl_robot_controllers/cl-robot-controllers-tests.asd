@@ -36,4 +36,5 @@
   ((:module "test"
     :components
     ((:file "package")
-     (:file "pid" :depends-on ("package"))))))
+     (:file "pid" :depends-on ("package"))
+     (:file "digital-filter" :depends-on ("package"))))))

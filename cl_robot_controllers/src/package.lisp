@@ -53,4 +53,7 @@
    ;; PID-CONTROLLER
    pid-controller make-pid-controller copy-pid-controller 
    pid-controller-p-controller pid-controller-i-controller pid-controller-d-controller 
-   compute-pid-control))
+   compute-pid-control
+   ;; DIGITAL FILTERING
+   digital-filter make-digital-filter copy-digital-filter create-digital-filter
+   filter-a filter-b filter-iir-p equal-buffer-lengths-p))
